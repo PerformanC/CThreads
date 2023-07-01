@@ -1,224 +1,328 @@
 #ifndef CTHREADS_H
 #define CTHREADS_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include <stdio.h>
-#include <stdlib.h>
-
 struct cthreads_args {
   void *(*func)(void *data);
   void *data;
 };
 
-#if __unix__
-#include <pthread.h>
-void *__cthreads_pthread_function_wrapper(void *data) {
-  struct cthreads_args *args = data;
-  args->func(args->data);
-
-  free(data);
-
-  return NULL;
-}
-#elif _WIN32
-#include <windows.h>
-DWORD WINAPI __cthreads_winthreads_function_wrapper(void *data) {
-  struct thread_args *args = data;
-  args.func(args.data);
-
-  free(data);
-
-  return TRUE;
-}
+#if _WIN32
+  #include <windows.h>
+#else
+  #include <pthread.h>
 #endif
 
 struct cthreads_thread {
-    #ifdef __unix__
-    pthread_t pThread;
-    #elif _WIN32
+  #ifdef _WIN32
     HANDLE wThread;
-    #endif
+  #else
+    pthread_t pThread;
+  #endif
+};
+
+struct cthreads_thread_attr {
+  size_t stacksize;
+  #ifdef _WIN32
+    int dwCreationFlags;
+  #else
+    void *stackaddr;
+    int detachstate;
+    size_t guardsize;
+    int inheritsched;
+    int schedpolicy;
+    int scope;
+    size_t stack;
+  #endif
 };
 
 struct cthreads_mutex {
-    #ifdef __unix__
-    pthread_mutex_t pMutex;
-    #elif _WIN32
+  #ifdef _WIN32
     HANDLE wMutex;
+  #else
+    pthread_mutex_t pMutex;
+  #endif
+};
+
+struct cthreads_mutex_attr {
+  #ifdef _WIN32
+    int bInitialOwner;
+    char *lpName;
+  #else
+    int pshared;
+    int type;
+    #if (defined __linux__ || defined __FreeBSD__) && !defined __ANDROID__
+      int robust;
     #endif
+    #if !defined __ANDROID__
+      int protocol;
+      int prioceiling;
+    #endif
+  #endif
 };
 
 struct cthreads_cond {
-    #ifdef __unix__
-    pthread_cond_t pCond;
-    #elif _WIN32
+  #ifdef _WIN32
     HANDLE wCond;
-    #endif
+  #else
+    pthread_cond_t pCond;
+  #endif
 };
 
-int cthreads_thread_create(struct cthreads_thread *thread, void *(*func)(void *data), void *data) {
-  #ifdef __unix__
-    pthread_t pthread;
-    int res;
-
-    struct cthreads_args *args = malloc(sizeof(struct cthreads_args));
-    args->func = func;
-    args->data = data;
-
-    res = pthread_create(&pthread, NULL, __cthreads_pthread_function_wrapper, (void *)args);
-
-    thread->pThread = pthread;
-
-    return res;
-  #elif _WIN32
-    struct cthreads_args *args = malloc(sizeof(struct cthreads_args));
-    args->func = func;
-    args->data = data;
-
-    HANDLE thread = CreateThread(NULL, 0, __cthreads_winthreads_function_wrapper, args, 0, NULL);
-
-    threading->wThread = thread;
-
-    return 0;
+struct cthreads_cond_attr {
+  #ifdef _WIN32
+    int bManualReset;
+    int bInitialState;
+    char *lpName;
+  #else
+    int pshared;
+    int clock;
   #endif
-}
+};
 
-void cthreads_thread_close(void *code) {
-  #ifdef __unix__
-    pthread_exit(code);
-  #elif _WIN32
-    ExitThread((DWORD)code);
+struct cthreads_rwlock {
+  #ifdef _WIN32
+    HANDLE wRWLock;
+  #else
+    pthread_rwlock_t pRWLock;
   #endif
+};
 
-  return;
-}
+/**
+ * Creates a new thread.
+ *
+ * - pthread: pthread_create
+ * - windows threads: CreateThread
+ *
+ * @param thread Pointer to the thread structure to be filled with the new thread information.
+ * @param attr Pointer to the thread attributes. Set it to NULL for default attributes.
+ * @param func Pointer to the function that will be executed in the new thread.
+ * @param data Pointer to the data that will be passed to the thread function.
+ * @param args Pointer to the thread arguments.
+ * @return 0 on success, non-zero error code on failure.
+ */
+int cthreads_thread_create(struct cthreads_thread *thread, struct cthreads_thread_attr *attr, void *(*func)(void *data), void *data, struct cthreads_args *args);
 
-int cthreads_mutex_init(struct cthreads_mutex *mutex) {
-  #ifdef __unix__
-    pthread_mutex_t pMutex;
-    int res = pthread_mutex_init(&pMutex, NULL);
+/**
+ * Detaches a thread.
+ *
+ * - pthread: pthread_detach
+ * - windows threads: CloseHandle
+ *
+ * @param thread Pointer to the thread structure to be detached.
+ * @return 0 on success, non-zero error code on failure.
+ */
+int cthreads_thread_detach(struct cthreads_thread *thread);
 
-    mutex->pMutex = pMutex;
+/**
+ * Closes a thread.
+ *
+ * - pthread: pthread_exit
+ * - windows threads: ExitThread
+ *
+ * @param code Pointer to the thread exit code.
+ */
+void cthreads_thread_close(void *code);
 
-    return res;
-  #elif _WIN32
-    HANDLE wMutex = CreateMutex(NULL, FALSE, NULL);
+/**
+ * Initializes a mutex.
+ *
+ * - pthread: pthread_mutex_init
+ * - windows threads: InitializeCriticalSection
+ *
+ * @param mutex Pointer to the mutex structure to be initialized.
+ * @param attr Pointer to the mutex attributes. Set it to NULL for default attributes.
+ * @return 0 on success, non-zero error code on failure.
+ */
+int cthreads_mutex_init(struct cthreads_mutex *mutex, struct cthreads_mutex_attr *attr);
 
-    mutex->wMutex = wMutex;
+/**
+ * Locks a mutex.
+ *
+ * - pthread: pthread_mutex_lock
+ * - windows threads: EnterCriticalSection
+ *
+ * @param mutex Pointer to the mutex structure to be locked.
+ * @return 0 on success, non-zero error code on failure.
+ */
+int cthreads_mutex_lock(struct cthreads_mutex *mutex);
 
-    return 0;
-  #endif
-}
+/**
+ * Tries to lock a mutex without blocking.
+ *
+ * - pthread: pthread_mutex_trylock
+ * - windows threads: TryEnterCriticalSection
+ *
+ * @param mutex Pointer to the mutex structure to be locked.
+ * @return 0 on success, non-zero error code on failure.
+ */
+int cthreads_mutex_trylock(struct cthreads_mutex *mutex);
 
-int cthreads_mutex_lock(struct cthreads_mutex *mutex) {
-  #ifdef __unix__
-    return pthread_mutex_lock(&mutex->pMutex);
-  #elif _WIN32
-    WaitForSingleObject(mutex->wMutex, INFINITE);
+/**
+ * Unlocks a mutex.
+ *
+ * - pthread: pthread_mutex_unlock
+ * - windows threads: LeaveCriticalSection
+ *
+ * @param mutex Pointer to the mutex structure to be unlocked.
+ * @return 0 on success, non-zero error code on failure.
+ */
+int cthreads_mutex_unlock(struct cthreads_mutex *mutex);
 
-    return 0;
-  #endif
-}
+/**
+ * Destroys a mutex.
+ *
+ * - pthread: pthread_mutex_destroy
+ * - windows threads: DeleteCriticalSection
+ *
+ * @param mutex Pointer to the mutex structure to be destroyed.
+ * @return 0 on success, non-zero error code on failure.
+ */
+int cthreads_mutex_destroy(struct cthreads_mutex *mutex);
 
-int cthreads_mutex_trylock(struct cthreads_mutex *mutex) {
-  #ifdef __unix__
-    return pthread_mutex_trylock(&mutex->pMutex);
-  #elif _WIN32
-    return WaitForSingleObject(mutex->wMutex, 0);
-  #endif
-}
+/**
+ * Initializes a condition variable.
+ *
+ * - pthread: pthread_cond_init
+ * - windows threads: InitializeConditionVariable
+ *
+ * @param cond Pointer to the condition variable structure to be initialized.
+ * @param attr Pointer to the condition variable attributes. Set it to NULL for default attributes.
+ * @return 0 on success, non-zero error code on failure.
+ */
+int cthreads_cond_init(struct cthreads_cond *cond, struct cthreads_cond_attr *attr);
 
-int cthreads_mutex_unlock(struct cthreads_mutex *mutex) {
-  #ifdef __unix__
-    return pthread_mutex_unlock(&mutex->pMutex);
-  #elif _WIN32
-    ReleaseMutex(mutex->wMutex);
+/**
+ * Signals a condition variable.
+ *
+ * - pthread: pthread_cond_signal
+ * - windows threads: WakeConditionVariable
+ *
+ * @param cond Pointer to the condition variable structure.
+ * @return 0 on success, non-zero error code on failure.
+ */
+int cthreads_cond_signal(struct cthreads_cond *cond);
 
-    return 0;
-  #endif
-}
+/**
+ * Broadcasts a condition variable.
+ *
+ * - pthread: pthread_cond_broadcast
+ * - windows threads: WakeAllConditionVariable
+ *
+ * @param cond Pointer to the condition variable structure.
+ * @return 0 on success, non-zero error code on failure.
+ */
+int cthreads_cond_broadcast(struct cthreads_cond *cond);
 
-void cthreads_mutex_destroy(struct cthreads_mutex *mutex) {
-  #ifdef __unix__
-    pthread_mutex_destroy(&mutex->pMutex);
-  #elif _WIN32
-    CloseHandle(mutex->wMutex);
-  #endif
-}
+/**
+ * Destroys a condition variable.
+ *
+ * - pthread: pthread_cond_destroy
+ * - windows threads: DeleteConditionVariable
+ *
+ * @param cond Pointer to the condition variable structure to be destroyed.
+ * @return 0 on success, non-zero error code on failure.
+ */
+int cthreads_cond_destroy(struct cthreads_cond *cond);
 
-int cthreads_cond_init(struct cthreads_cond *cond) {
-  #ifdef __unix__
-    pthread_cond_t pCond;
-    int res = pthread_cond_init(&pCond, NULL);
+/**
+ * Waits on a condition variable.
+ *
+ * - pthread: pthread_cond_wait
+ * - windows threads: SleepConditionVariableCS
+ *
+ * @param cond Pointer to the condition variable structure.
+ * @param mutex Pointer to the associated mutex structure.
+ * @return 0 on success, non-zero error code on failure.
+ */
+int cthreads_cond_wait(struct cthreads_cond *cond, struct cthreads_mutex *mutex);
 
-    cond->pCond = pCond;
+/**
+ * Joins a thread.
+ *
+ * - pthread: pthread_join
+ * - windows threads: WaitForSingleObject & GetExitCodeThread
+ *
+ * @param thread Pointer to the thread structure to be joined.
+ * @param code Pointer to store the exit code of the joined thread.
+ * @return 0 on success, non-zero error code on failure.
+ */
+int cthreads_join(struct cthreads_thread *thread, void *code);
 
-    return res;
-  #elif _WIN32
-    HANDLE wCond = CreateEvent(NULL, FALSE, FALSE, NULL);
+/**
+ * Initializes a read-write lock.
+ *
+ * - pthread: pthread_rwlock_init
+ * - windows threads: InitializeSRWLock
+ *
+ * @param rwlock Pointer to the read-write lock structure to be initialized.
+ * @return 0 on success, non-zero error code on failure.
+ */
+int cthreads_rwlock_init(struct cthreads_rwlock *rwlock);
 
-    cond->wCond = wCond;
+/**
+ * Acquires a read lock on a read-write lock.
+ *
+ * - pthread: pthread_rwlock_rdlock
+ * - windows threads: AcquireSRWLockShared
+ *
+ * @param rwlock Pointer to the read-write lock structure to be locked.
+ * @return 0 on success, non-zero error code on failure.
+ */
+int cthreads_rwlock_rdlock(struct cthreads_rwlock *rwlock);
 
-    return 0;
-  #endif
-}
+/**
+ * Unlocks a read-write lock.
+ *
+ * - pthread: pthread_rwlock_unlock
+ * - windows threads: ReleaseSRWLockExclusive for writer, ReleaseSRWLockShared for reader
+ *
+ * @param rwlock Pointer to the read-write lock structure to be unlocked.
+ * @return 0 on success, non-zero error code on failure.
+ */
+int cthreads_rwlock_unlock(struct cthreads_rwlock *rwlock);
 
-int cthreads_cond_signal(struct cthreads_cond *cond) {
-  #ifdef __unix__
-    return pthread_cond_signal(&cond->pCond);
-  #elif _WIN32
-    SetEvent(cond->wCond);
+/**
+ * Acquires a write lock on a read-write lock.
+ *
+ * - pthread: pthread_rwlock_wrlock
+ * - windows threads: AcquireSRWLockExclusive
+ *
+ * @param rwlock Pointer to the read-write lock structure to be locked.
+ * @return 0 on success, non-zero error code on failure.
+ */
+int cthreads_rwlock_wrlock(struct cthreads_rwlock *rwlock);
 
-    return 0;
-  #endif
-}
+/**
+ * Destroys a read-write lock.
+ *
+ * - pthread: pthread_rwlock_destroy
+ * - windows threads: DeleteSRWLock
+ *
+ * @param rwlock Pointer to the read-write lock structure to be destroyed.
+ * @return 0 on success, non-zero error code on failure.
+ */
+int cthreads_rwlock_destroy(struct cthreads_rwlock *rwlock);
 
-int cthreads_cond_broadcast(struct cthreads_cond *cond) {
-  #ifdef __unix__
-    return pthread_cond_broadcast(&cond->pCond);
-  #elif _WIN32
-    SetEvent(cond->wCond);
+/**
+ * Compares two thread structures for equality.
+ *
+ * - pthread: pthread_equal
+ * - windows threads: GetCurrentThreadId
+ *
+ * @param thread1 First thread structure to compare.
+ * @param thread2 Second thread structure to compare.
+ * @return Non-zero if the threads are equal, zero otherwise.
+ */
+int cthreads_equal(struct cthreads_thread thread1, struct cthreads_thread thread2);
 
-    return 0;
-  #endif
-}
+/**
+ * Retrieves the thread identifier of the current thread.
+ *
+ * - pthread: pthread_self
+ * - windows threads: GetCurrentThreadId
+ *
+ * @return Thread identifier of the current thread.
+ */
+struct cthreads_thread cthreads_self();
 
-int cthreads_cond_destroy(struct cthreads_cond *cond) {
-  #ifdef __unix__
-    return pthread_cond_destroy(&cond->pCond);
-  #elif _WIN32
-    CloseHandle(cond->wCond);
-
-    return 0;
-  #endif
-}
-
-int cthreads_cond_wait(struct cthreads_cond *cond, struct cthreads_mutex *mutex) {
-  #ifdef __unix__
-    return pthread_cond_wait(&cond->pCond, &mutex->pMutex);
-  #elif _WIN32
-    WaitForSingleObject(cond->wCond, INFINITE);
-
-    return 0;
-  #endif
-}
-
-int cthreads_wait_close_thread(struct cthreads_thread *thread, void *code) {
-  #ifdef __unix__
-    return pthread_join(thread->pThread, &code);
-  #elif _WIN32
-    WaitForSingleObject(thread->wThread, INFINITE);
-    GetExitCodeThread(thread->wThread, (LPDWORD)&code);
-
-    return 0;
-  #endif
-}
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif
+#endif /* CTHREADS_H */
