@@ -1,22 +1,50 @@
 # CThreads
 
-Cross-platform threads library, using `pthread` and `Windows threads`.
+Cross(-platform) threading library, using `pthread` and `Threads threads`.
 
 ## Purpose
 
-The purpose of this project is to allow projects to have cross-compatibility, not being limited by either `pthread` or `Windows threads`.
+The purpose of this project is to allow projects to have cross-compatibility, not being limited by either `pthread` or `Windows Threads`.
 It has an easy syntax so that it can be used easily and with no problems.
 
 ## Usage
 
 CThreads is simple and easy, with functions of the same name as `pthread`, but with different arguments.
 
-## Warnings
+> [!WARNING]
+> To ensure you don't use a field or function that are not available on your platform, you can use the following:
 
-This library focuses on performance, so that, there are some things you must know before using it:
+```c
+#ifdef CTHREADS_RWLOCK
+ // Code using CThreads rwlock
+#endif
+```
 
-- When using attribute structures, be sure to use #ifdef since some attributes may not be available on Watcom for example.
-- The Windows version of the library is unstable, so it may not work properly.
+Those macros are:
+- `CTHREADS_THREAD_DWCREATIONFLAGS`
+- `CTHREADS_MUTEX_BINITIALOWNER`
+- `CTHREADS_MUTEX_LPNAME`
+- `CTHREADS_COND_BMANUALRESET`
+- `CTHREADS_COND_BINITIALSTATE`
+- `CTHREADS_COND_LPNAME`
+- `CTHREADS_RWLOCK`
+- `CTHREADS_THREAD_STACKADDR`
+- `CTHREADS_THREAD_DETACHSTATE`
+- `CTHREADS_THREAD_GUARDSIZE`
+- `CTHREADS_THREAD_INHERITSCHED`
+- `CTHREADS_THREAD_SCHEDPOLICY`
+- `CTHREADS_THREAD_SCOPE`
+- `CTHREADS_THREAD_STACK`
+- `CTHREADS_MUTEX_PSHARED`
+- `CTHREADS_MUTEX_TYPE`
+- `CTHREADS_MUTEX_ROBUST`
+- `CTHREADS_MUTEX_PROTOCOL`
+- `CTHREADS_MUTEX_PRIOCEILING`
+- `CTHREADS_COND_PSHARED`
+- `CTHREADS_COND_CLOCK`
+
+> [!NOTE]
+> Any function/field that is not listed there is available on all platforms.
 
 ## Tested compilers and platforms
 

@@ -12,6 +12,54 @@ struct cthreads_args {
   #include <pthread.h>
 #endif
 
+#ifdef _WIN32
+  #define CTHREADS_THREAD_DWCREATIONFLAGS 1
+
+  #define CTHREADS_MUTEX_BINITIALOWNER 1
+  #define CTHREADS_MUTEX_LPNAME 1
+
+  #define CTHREADS_COND_BMANUALRESET 1
+  #define CTHREADS_COND_BINITIALSTATE 1
+  #define CTHREADS_COND_LPNAME 1
+
+  #define CTHREADS_RWLOCK 1
+#else
+  #define CTHREADS_THREAD_STACKADDR 1
+  #define CTHREADS_THREAD_DETACHSTATE 1
+  #define CTHREADS_THREAD_GUARDSIZE 1
+  #ifndef __ANDROID__
+    #define CTHREADS_THREAD_INHERITSCHED 1
+  #endif
+  #define CTHREADS_THREAD_SCHEDPOLICY 1
+  #define CTHREADS_THREAD_SCOPE 1
+  #if _POSIX_C_SOURCE >= 200112L
+    #define CTHREADS_THREAD_STACK 1
+  #endif
+
+  #define CTHREADS_MUTEX_PSHARED 1
+  #if _POSIX_C_SOURCE >= 200809L
+    #define CTHREADS_MUTEX_TYPE 1
+  #endif
+  #if _POSIX_C_SOURCE >= 200112L
+    #if (defined __linux__ || defined __FreeBSD__) && !defined __ANDROID__
+      #define CTHREADS_MUTEX_ROBUST 1
+    #endif
+  #endif
+  #ifndef __ANDROID__
+    #define CTHREADS_MUTEX_PROTOCOL 1
+    #define CTHREADS_MUTEX_PRIOCEILING 1
+  #endif
+
+  #define CTHREADS_COND_PSHARED 1
+  #if _POSIX_C_SOURCE >= 200112L
+    #define CTHREADS_COND_CLOCK 1
+  #endif
+
+  #if _POSIX_C_SOURCE >= 200112L
+    #define CTHREADS_RWLOCK 1
+  #endif
+#endif
+
 struct cthreads_thread {
   #ifdef _WIN32
     HANDLE wThread;
@@ -31,7 +79,9 @@ struct cthreads_thread_attr {
     int inheritsched;
     int schedpolicy;
     int scope;
-    size_t stack;
+    #ifdef CTHREADS_THREAD_STACK
+      size_t stack;
+    #endif
   #endif
 };
 
@@ -49,12 +99,16 @@ struct cthreads_mutex_attr {
     char *lpName;
   #else
     int pshared;
-    int type;
-    #if (defined __linux__ || defined __FreeBSD__) && !defined __ANDROID__
+    #ifdef CTHREADS_MUTEX_TYPE
+      int type;
+    #endif
+    #ifdef CTHREADS_MUTEX_ROBUST
       int robust;
     #endif
-    #if !defined __ANDROID__
+    #ifdef CTHREADS_MUTEX_PROTOCOL
       int protocol;
+    #endif
+    #ifdef CTHREADS_MUTEX_PRIOCEILING
       int prioceiling;
     #endif
   #endif
@@ -75,10 +129,13 @@ struct cthreads_cond_attr {
     char *lpName;
   #else
     int pshared;
-    int clock;
+    #ifdef CTHREADS_COND_CLOCK
+      int clock;
+    #endif
   #endif
 };
 
+#ifdef CTHREADS_RWLOCK
 struct cthreads_rwlock {
   #ifdef _WIN32
     HANDLE wRWLock;
@@ -86,6 +143,7 @@ struct cthreads_rwlock {
     pthread_rwlock_t pRWLock;
   #endif
 };
+#endif
 
 /**
  * Creates a new thread.
@@ -108,10 +166,10 @@ int cthreads_thread_create(struct cthreads_thread *thread, struct cthreads_threa
  * - pthread: pthread_detach
  * - windows threads: CloseHandle
  *
- * @param thread Pointer to the thread structure to be detached.
+ * @param thread Thread structure to be detached.
  * @return 0 on success, non-zero error code on failure.
  */
-int cthreads_thread_detach(struct cthreads_thread *thread);
+int cthreads_thread_detach(struct cthreads_thread thread);
 
 /**
  * Closes a thread.
@@ -248,6 +306,7 @@ int cthreads_cond_wait(struct cthreads_cond *cond, struct cthreads_mutex *mutex)
  */
 int cthreads_join(struct cthreads_thread *thread, void *code);
 
+#ifdef CTHREADS_RWLOCK
 /**
  * Initializes a read-write lock.
  *
@@ -302,6 +361,7 @@ int cthreads_rwlock_wrlock(struct cthreads_rwlock *rwlock);
  * @return 0 on success, non-zero error code on failure.
  */
 int cthreads_rwlock_destroy(struct cthreads_rwlock *rwlock);
+#endif
 
 /**
  * Compares two thread structures for equality.
@@ -323,6 +383,17 @@ int cthreads_equal(struct cthreads_thread thread1, struct cthreads_thread thread
  *
  * @return Thread identifier of the current thread.
  */
-struct cthreads_thread cthreads_self();
+struct cthreads_thread cthreads_self(void);
+
+/**
+ * Retrieves the thread identifier of the specified thread.
+ * 
+ * - pthread: pthread_self
+ * - windows threads: GetCurrentThreadId
+ * 
+ * @param thread Thread structure to retrieve the identifier from.
+ * @return Thread identifier of the specified thread.
+*/
+unsigned long cthreads_thread_id(struct cthreads_thread thread);
 
 #endif /* CTHREADS_H */

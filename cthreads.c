@@ -3,7 +3,7 @@
 
 #include "cthreads.h"
 
-#if _WIN32
+#ifdef _WIN32
 #include <windows.h>
 DWORD WINAPI __cthreads_winthreads_function_wrapper(void *data) {
   struct cthreads_args *args = data;
@@ -29,28 +29,32 @@ int cthreads_thread_create(struct cthreads_thread *thread, struct cthreads_threa
   #else
     pthread_attr_t pAttr;
 
+    (void) args;
+
     if (attr) {
       if (pthread_attr_init(&pAttr)) return 1;
       if (attr->detachstate) pthread_attr_setdetachstate(&pAttr, attr->detachstate);
       if (attr->guardsize) pthread_attr_setguardsize(&pAttr, attr->guardsize);
-      #if !defined __ANDROID__
-          if (attr->inheritsched) pthread_attr_setinheritsched(&pAttr, attr->inheritsched);
+      #ifdef CTHREADS_THREAD_INHERITSCHED
+        if (attr->inheritsched) pthread_attr_setinheritsched(&pAttr, attr->inheritsched);
       #endif
       if (attr->schedpolicy) pthread_attr_setschedpolicy(&pAttr, attr->schedpolicy);
       if (attr->scope) pthread_attr_setscope(&pAttr, attr->scope);
-      if (attr->stack) pthread_attr_setstack(&pAttr, attr->stackaddr, attr->stack);
+      #ifdef CTHREADS_THREAD_STACK
+        if (attr->stack) pthread_attr_setstack(&pAttr, attr->stackaddr, attr->stack);
+      #endif
       if (attr->stacksize) pthread_attr_setstacksize(&pAttr, attr->stacksize);
     }
 
-    return pthread_create(&thread->pThread, attr ? &pAttr : NULL, func, args);
+    return pthread_create(&thread->pThread, attr ? &pAttr : NULL, func, data);
   #endif
 }
 
-int cthreads_thread_detach(struct cthreads_thread *thread) {
+int cthreads_thread_detach(struct cthreads_thread thread) {
   #ifdef _WIN32
-    return CloseHandle(thread->wThread);
+    return CloseHandle(thread.wThread);
   #else
-    return pthread_detach(thread->pThread);
+    return pthread_detach(thread.pThread);
   #endif
 }
 
@@ -78,12 +82,16 @@ int cthreads_mutex_init(struct cthreads_mutex *mutex, struct cthreads_mutex_attr
     if (attr) {
       if (pthread_mutexattr_init(&pAttr)) return 1;
       if (attr->pshared) pthread_mutexattr_setpshared(&pAttr, attr->pshared);
-      if (attr->type) pthread_mutexattr_settype(&pAttr, attr->type);
-      #if (defined __linux__ || defined __FreeBSD__) && !defined __ANDROID__
+      #ifdef CTHREADS_MUTEX_TYPE
+        if (attr->type) pthread_mutexattr_settype(&pAttr, attr->type);
+      #endif
+      #ifdef CTHREADS_MUTEX_ROBUST
         if (attr->robust) pthread_mutexattr_setrobust(&pAttr, attr->robust);
       #endif
-      #if !defined __ANDROID__
+      #ifdef CTHREADS_MUTEX_PROTOCOL
         if (attr->protocol) pthread_mutexattr_setprotocol(&pAttr, attr->protocol);
+      #endif
+      #ifdef CTHREADS_MUTEX_PRIOCEILING
         if (attr->prioceiling) pthread_mutexattr_setprioceiling(&pAttr, attr->prioceiling);
       #endif
     }
@@ -137,7 +145,9 @@ int cthreads_cond_init(struct cthreads_cond *cond, struct cthreads_cond_attr *at
     if (attr) {
       if (pthread_condattr_init(&pAttr) != 0) return 1;
       if (attr->pshared) pthread_condattr_setpshared(&pAttr, attr->pshared);
-      if (attr->clock) pthread_condattr_setclock(&pAttr, attr->clock);
+      #ifdef CTHREADS_COND_CLOCK
+        if (attr->clock) pthread_condattr_setclock(&pAttr, attr->clock);
+      #endif
     }
 
     return pthread_cond_init(&cond->pCond, attr ? &pAttr : NULL);
@@ -186,45 +196,47 @@ int cthreads_join(struct cthreads_thread *thread, void *code) {
   #endif
 }
 
+#ifdef CTHREADS_RWLOCK
 int cthreads_rwlock_init(struct cthreads_rwlock *rwlock) {
-  #ifdef _WIN32
-    return (rwlock->wRWLock = CreateMutex(NULL, FALSE, NULL)) == NULL ? 1 : 0;
-  #else
-    return pthread_rwlock_init(&rwlock->pRWLock, NULL);
-  #endif
+    #ifdef _WIN32
+        return (rwlock->wRWLock = CreateMutex(NULL, FALSE, NULL)) == NULL ? 1 : 0;
+    #else
+        return pthread_rwlock_init(&rwlock->pRWLock, NULL);
+    #endif
 }
 
 int cthreads_rwlock_rdlock(struct cthreads_rwlock *rwlock) {
-  #ifdef _WIN32
-    return WaitForSingleObject(rwlock->wRWLock, INFINITE) == WAIT_FAILED ? 1 : 0;
-  #else
-    return pthread_rwlock_rdlock(&rwlock->pRWLock);
-  #endif
+    #ifdef _WIN32
+        return WaitForSingleObject(rwlock->wRWLock, INFINITE) == WAIT_FAILED ? 1 : 0;
+    #else
+        return pthread_rwlock_rdlock(&rwlock->pRWLock);
+    #endif
 }
 
 int cthreads_rwlock_unlock(struct cthreads_rwlock *rwlock) {
-  #ifdef _WIN32
-    return ReleaseMutex(rwlock->wRWLock) == 0 ? 1 : 0;
-  #else
-    return pthread_rwlock_unlock(&rwlock->pRWLock);
-  #endif
+    #ifdef _WIN32
+        return ReleaseMutex(rwlock->wRWLock) == 0 ? 1 : 0;
+    #else
+        return pthread_rwlock_unlock(&rwlock->pRWLock);
+    #endif
 }
 
 int cthreads_rwlock_wrlock(struct cthreads_rwlock *rwlock) {
-  #ifdef _WIN32
-    return WaitForSingleObject(rwlock->wRWLock, INFINITE) == WAIT_FAILED ? 1 : 0;
-  #else
-    return pthread_rwlock_wrlock(&rwlock->pRWLock);
-  #endif
+    #ifdef _WIN32
+        return WaitForSingleObject(rwlock->wRWLock, INFINITE) == WAIT_FAILED ? 1 : 0;
+    #else
+        return pthread_rwlock_wrlock(&rwlock->pRWLock);
+    #endif
 }
 
 int cthreads_rwlock_destroy(struct cthreads_rwlock *rwlock) {
-  #ifdef _WIN32
-    return CloseHandle(rwlock->wRWLock) == 0 ? 1 : 0;
-  #else
-    return pthread_rwlock_destroy(&rwlock->pRWLock);
-  #endif
+    #ifdef _WIN32
+        return CloseHandle(rwlock->wRWLock) == 0 ? 1 : 0;
+    #else
+        return pthread_rwlock_destroy(&rwlock->pRWLock);
+    #endif
 }
+#endif
 
 int cthreads_equal(struct cthreads_thread thread1, struct cthreads_thread thread2) {
   #ifdef _WIN32
@@ -244,4 +256,12 @@ struct cthreads_thread cthreads_self(void) {
   #endif
 
   return t;
+}
+
+unsigned long cthreads_thread_id(struct cthreads_thread thread) {
+  #ifdef _WIN32
+    return GetThreadId(thread.wThread);
+  #else
+    return (unsigned long)thread.pThread;
+  #endif
 }
