@@ -58,6 +58,44 @@ int cthreads_thread_detach(struct cthreads_thread thread) {
   #endif
 }
 
+int cthreads_thread_join(struct cthreads_thread *thread, void *code) {
+  #ifdef _WIN32
+    if (WaitForSingleObject(thread->wThread, INFINITE) == WAIT_FAILED) return 0;
+
+    return GetExitCodeThread(thread->wThread, (LPDWORD)&code) == 0 ? 1 : 0;
+  #else
+    return pthread_join(thread->pThread, code ? &code : NULL);
+  #endif
+}
+
+int cthreads_thread_equal(struct cthreads_thread thread1, struct cthreads_thread thread2) {
+  #ifdef _WIN32
+    return thread1.wThread == thread2.wThread;
+  #else
+    return pthread_equal(thread1.pThread, thread2.pThread);
+  #endif
+}
+
+struct cthreads_thread cthreads_thread_self(void) {
+  struct cthreads_thread t;
+
+  #ifdef _WIN32
+    t.wThread = GetCurrentThread();
+  #else
+    t.pThread = pthread_self();
+  #endif
+
+  return t;
+}
+
+unsigned long cthreads_thread_id(struct cthreads_thread thread) {
+  #ifdef _WIN32
+    return GetThreadId(thread.wThread);
+  #else
+    return (unsigned long)thread.pThread;
+  #endif
+}
+
 void cthreads_thread_close(void *code) {
   #ifdef _WIN32
     #ifdef __WATCOMC__
@@ -186,16 +224,6 @@ int cthreads_cond_wait(struct cthreads_cond *cond, struct cthreads_mutex *mutex)
   #endif
 }
 
-int cthreads_join(struct cthreads_thread *thread, void *code) {
-  #ifdef _WIN32
-    if (WaitForSingleObject(thread->wThread, INFINITE) == WAIT_FAILED) return 0;
-
-    return GetExitCodeThread(thread->wThread, (LPDWORD)&code) == 0 ? 1 : 0;
-  #else
-    return pthread_join(thread->pThread, code ? &code : NULL);
-  #endif
-}
-
 #ifdef CTHREADS_RWLOCK
 int cthreads_rwlock_init(struct cthreads_rwlock *rwlock) {
     #ifdef _WIN32
@@ -237,31 +265,3 @@ int cthreads_rwlock_destroy(struct cthreads_rwlock *rwlock) {
     #endif
 }
 #endif
-
-int cthreads_equal(struct cthreads_thread thread1, struct cthreads_thread thread2) {
-  #ifdef _WIN32
-    return thread1.wThread == thread2.wThread;
-  #else
-    return pthread_equal(thread1.pThread, thread2.pThread);
-  #endif
-}
-
-struct cthreads_thread cthreads_self(void) {
-  struct cthreads_thread t;
-
-  #ifdef _WIN32
-    t.wThread = GetCurrentThread();
-  #else
-    t.pThread = pthread_self();
-  #endif
-
-  return t;
-}
-
-unsigned long cthreads_thread_id(struct cthreads_thread thread) {
-  #ifdef _WIN32
-    return GetThreadId(thread.wThread);
-  #else
-    return (unsigned long)thread.pThread;
-  #endif
-}

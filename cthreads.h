@@ -172,6 +172,51 @@ int cthreads_thread_create(struct cthreads_thread *thread, struct cthreads_threa
 int cthreads_thread_detach(struct cthreads_thread thread);
 
 /**
+ * Joins a thread.
+ *
+ * - pthread: pthread_join
+ * - windows threads: WaitForSingleObject & GetExitCodeThread
+ *
+ * @param thread Pointer to the thread structure to be joined.
+ * @param code Pointer to store the exit code of the joined thread.
+ * @return 0 on success, non-zero error code on failure.
+ */
+int cthreads_thread_join(struct cthreads_thread *thread, void *code);
+
+/**
+ * Compares two thread structures for equality.
+ *
+ * - pthread: pthread_equal
+ * - windows threads: GetCurrentThreadId
+ *
+ * @param thread1 First thread structure to compare.
+ * @param thread2 Second thread structure to compare.
+ * @return Non-zero if the threads are equal, zero otherwise.
+ */
+int cthreads_thread_equal(struct cthreads_thread thread1, struct cthreads_thread thread2);
+
+/**
+ * Retrieves the thread identifier of the current thread.
+ *
+ * - pthread: pthread_self
+ * - windows threads: GetCurrentThreadId
+ *
+ * @return Thread identifier of the current thread.
+ */
+struct cthreads_thread cthreads_thread_self(void);
+
+/**
+ * Retrieves the thread identifier of the specified thread.
+ * 
+ * - pthread: N/A
+ * - windows threads: GetThreadId
+ * 
+ * @param thread Thread structure to retrieve the identifier from.
+ * @return Thread identifier of the specified thread.
+*/
+unsigned long cthreads_thread_id(struct cthreads_thread thread);
+
+/**
  * Closes a thread.
  *
  * - pthread: pthread_exit
@@ -294,18 +339,6 @@ int cthreads_cond_destroy(struct cthreads_cond *cond);
  */
 int cthreads_cond_wait(struct cthreads_cond *cond, struct cthreads_mutex *mutex);
 
-/**
- * Joins a thread.
- *
- * - pthread: pthread_join
- * - windows threads: WaitForSingleObject & GetExitCodeThread
- *
- * @param thread Pointer to the thread structure to be joined.
- * @param code Pointer to store the exit code of the joined thread.
- * @return 0 on success, non-zero error code on failure.
- */
-int cthreads_join(struct cthreads_thread *thread, void *code);
-
 #ifdef CTHREADS_RWLOCK
 /**
  * Initializes a read-write lock.
@@ -362,38 +395,5 @@ int cthreads_rwlock_wrlock(struct cthreads_rwlock *rwlock);
  */
 int cthreads_rwlock_destroy(struct cthreads_rwlock *rwlock);
 #endif
-
-/**
- * Compares two thread structures for equality.
- *
- * - pthread: pthread_equal
- * - windows threads: GetCurrentThreadId
- *
- * @param thread1 First thread structure to compare.
- * @param thread2 Second thread structure to compare.
- * @return Non-zero if the threads are equal, zero otherwise.
- */
-int cthreads_equal(struct cthreads_thread thread1, struct cthreads_thread thread2);
-
-/**
- * Retrieves the thread identifier of the current thread.
- *
- * - pthread: pthread_self
- * - windows threads: GetCurrentThreadId
- *
- * @return Thread identifier of the current thread.
- */
-struct cthreads_thread cthreads_self(void);
-
-/**
- * Retrieves the thread identifier of the specified thread.
- * 
- * - pthread: pthread_self
- * - windows threads: GetCurrentThreadId
- * 
- * @param thread Thread structure to retrieve the identifier from.
- * @return Thread identifier of the specified thread.
-*/
-unsigned long cthreads_thread_id(struct cthreads_thread thread);
 
 #endif /* CTHREADS_H */

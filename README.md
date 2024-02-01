@@ -1,15 +1,37 @@
 # CThreads
 
-Cross(-platform) threading library, using `pthread` and `Threads threads`.
+Cross(-platform) threading library, using `pthread` and `Windows Threads`.
 
 ## Purpose
 
-The purpose of this project is to allow projects to have cross-compatibility, not being limited by either `pthread` or `Windows Threads`.
-It has an easy syntax so that it can be used easily and with no problems.
+CThreads is an extremely portable threading library, allowing you to use the same code on Windows and Unix-like systems. It is based on `pthread` and `Windows Threads`, and provides a simple interface to use them.
+
+## API
+
+- `cthreads_thread_create`: Creates a new thread.
+- `cthreads_thread_detach`: Detaches a thread.
+- `cthreads_thread_join`: Joins a thread.
+- `cthreads_thread_equal`: Compares two thread structures for equality.
+- `cthreads_thread_self`: Retrieves the thread identifier of the current thread.
+- `cthreads_thread_id`: Retrieves the thread identifier of the specified thread.
+- `cthreads_thread_close`: Closes a thread.
+- `cthreads_mutex_init`: Initializes a mutex.
+- `cthreads_mutex_lock`: Locks a mutex.
+- `cthreads_mutex_trylock`: Tries to lock a mutex without blocking.
+- `cthreads_mutex_unlock`: Unlocks a mutex.
+- `cthreads_mutex_destroy`: Destroys a mutex.
+- `cthreads_cond_init`: Initializes a condition variable.
+- `cthreads_cond_signal`: Signals a condition variable.
+- `cthreads_cond_broadcast`: Broadcasts a condition variable.
+- `cthreads_cond_destroy`: Destroys a condition variable.
+- `cthreads_cond_wait`: Waits on a condition variable.
+
+> [!NOTE]
+> For internal information of what functions are used on certain platform, see `cthreads.h` file.
 
 ## Usage
 
-CThreads is simple and easy, with functions of the same name as `pthread`, but with different arguments.
+CThreads is simple and easy, with (most) functions of the same name as `pthread`, but with different arguments.
 
 > [!WARNING]
 > To ensure you don't use a field or function that are not available on your platform, you can use the following:
@@ -22,12 +44,6 @@ CThreads is simple and easy, with functions of the same name as `pthread`, but w
 
 Those macros are:
 - `CTHREADS_THREAD_DWCREATIONFLAGS`
-- `CTHREADS_MUTEX_BINITIALOWNER`
-- `CTHREADS_MUTEX_LPNAME`
-- `CTHREADS_COND_BMANUALRESET`
-- `CTHREADS_COND_BINITIALSTATE`
-- `CTHREADS_COND_LPNAME`
-- `CTHREADS_RWLOCK`
 - `CTHREADS_THREAD_STACKADDR`
 - `CTHREADS_THREAD_DETACHSTATE`
 - `CTHREADS_THREAD_GUARDSIZE`
@@ -35,13 +51,19 @@ Those macros are:
 - `CTHREADS_THREAD_SCHEDPOLICY`
 - `CTHREADS_THREAD_SCOPE`
 - `CTHREADS_THREAD_STACK`
+- `CTHREADS_MUTEX_BINITIALOWNER`
+- `CTHREADS_MUTEX_LPNAME`
 - `CTHREADS_MUTEX_PSHARED`
 - `CTHREADS_MUTEX_TYPE`
 - `CTHREADS_MUTEX_ROBUST`
 - `CTHREADS_MUTEX_PROTOCOL`
 - `CTHREADS_MUTEX_PRIOCEILING`
+- `CTHREADS_COND_BMANUALRESET`
+- `CTHREADS_COND_BINITIALSTATE`
+- `CTHREADS_COND_LPNAME`
 - `CTHREADS_COND_PSHARED`
 - `CTHREADS_COND_CLOCK`
+- `CTHREADS_RWLOCK`
 
 > [!NOTE]
 > Any function/field that is not listed there is available on all platforms.
