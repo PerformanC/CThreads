@@ -181,7 +181,7 @@ int cthreads_thread_detach(struct cthreads_thread thread);
  * @param code Pointer to store the exit code of the joined thread.
  * @return 0 on success, non-zero error code on failure.
  */
-int cthreads_thread_join(struct cthreads_thread *thread, void *code);
+int cthreads_thread_join(struct cthreads_thread thread, void *code);
 
 /**
  * Compares two thread structures for equality.
@@ -191,17 +191,17 @@ int cthreads_thread_join(struct cthreads_thread *thread, void *code);
  *
  * @param thread1 First thread structure to compare.
  * @param thread2 Second thread structure to compare.
- * @return Non-zero if the threads are equal, zero otherwise.
+ * @return 1 if the threads are equal, zero otherwise.
  */
 int cthreads_thread_equal(struct cthreads_thread thread1, struct cthreads_thread thread2);
 
 /**
- * Retrieves the thread identifier of the current thread.
+ * Retrieves the thread struct of the current thread.
  *
  * - pthread: pthread_self
  * - windows threads: GetCurrentThreadId
  *
- * @return Thread identifier of the current thread.
+ * @return Thread struct of the current thread.
  */
 struct cthreads_thread cthreads_thread_self(void);
 
