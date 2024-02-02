@@ -96,7 +96,7 @@ unsigned long cthreads_thread_id(struct cthreads_thread thread) {
   #endif
 }
 
-void cthreads_thread_close(void *code) {
+void cthreads_thread_exit(void *code) {
   #ifdef _WIN32
     #ifdef __WATCOMC__
       ExitThread((DWORD)code);

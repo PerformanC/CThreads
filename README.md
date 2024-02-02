@@ -14,7 +14,7 @@ CThreads is an extremely portable threading library, allowing you to use the sam
 - `cthreads_thread_equal`: Compares two thread structures for equality.
 - `cthreads_thread_self`: Retrieves the thread identifier of the current thread.
 - `cthreads_thread_id`: Retrieves the thread identifier of the specified thread.
-- `cthreads_thread_close`: Closes a thread.
+- `cthreads_thread_exit`: Exits a thread.
 - `cthreads_mutex_init`: Initializes a mutex.
 - `cthreads_mutex_lock`: Locks a mutex.
 - `cthreads_mutex_trylock`: Tries to lock a mutex without blocking.
