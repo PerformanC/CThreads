@@ -51,22 +51,21 @@ Those macros are:
 - `CTHREADS_THREAD_SCHEDPOLICY`
 - `CTHREADS_THREAD_SCOPE`
 - `CTHREADS_THREAD_STACK`
-- `CTHREADS_MUTEX_BINITIALOWNER`
-- `CTHREADS_MUTEX_LPNAME`
+- `CTHREADS_MUTEX_ATTR`
 - `CTHREADS_MUTEX_PSHARED`
 - `CTHREADS_MUTEX_TYPE`
 - `CTHREADS_MUTEX_ROBUST`
 - `CTHREADS_MUTEX_PROTOCOL`
 - `CTHREADS_MUTEX_PRIOCEILING`
-- `CTHREADS_COND_BMANUALRESET`
-- `CTHREADS_COND_BINITIALSTATE`
-- `CTHREADS_COND_LPNAME`
+- `CTHREADS_COND_ATTR`
 - `CTHREADS_COND_PSHARED`
 - `CTHREADS_COND_CLOCK`
 - `CTHREADS_RWLOCK`
 
 > [!NOTE]
 > Any function/field that is not listed there is available on all platforms.
+
+For debugging, you can use the `CTHREADS_DEBUG` macro to enable debug messages, which will show which functions are being used.
 
 ## Tested compilers and platforms
 
