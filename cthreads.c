@@ -141,6 +141,18 @@ void cthreads_thread_exit(void *code) {
   #endif
 }
 
+int cthreads_thread_cancel(struct cthreads_thread thread) {
+  #ifdef CTHREADS_DEBUG
+    printf("cthreads_thread_cancel\n");
+  #endif
+
+  #ifdef _WIN32
+    return TerminateThread(thread.wThread, 0);
+  #else
+    return pthread_cancel(thread.pThread);
+  #endif
+}
+
 #ifdef CTHREADS_MUTEX_ATTR
   int cthreads_mutex_init(struct cthreads_mutex *mutex, struct cthreads_mutex_attr *attr) {
 #else

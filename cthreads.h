@@ -222,6 +222,17 @@ unsigned long cthreads_thread_id(struct cthreads_thread thread);
 void cthreads_thread_exit(void *code);
 
 /**
+ * Cancels a thread.
+ *
+ * - pthread: pthread_cancel
+ * - windows threads: TerminateThread
+ *
+ * @param thread Thread structure to be canceled.
+ * @return 0 on success, non-zero error code on failure.
+ */
+int cthreads_thread_cancel(struct cthreads_thread thread);
+
+/**
  * Initializes a mutex.
  *
  * - pthread: pthread_mutex_init
