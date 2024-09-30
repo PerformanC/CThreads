@@ -353,6 +353,19 @@ int cthreads_cond_destroy(struct cthreads_cond *cond);
  */
 int cthreads_cond_wait(struct cthreads_cond *cond, struct cthreads_mutex *mutex);
 
+/**
+ * Waits on a condition variable till set ms.
+ *
+ * - pthread: pthread_cond_timedwait
+ * - windows threads: SleepConditionVariableCS
+ *
+ * @param cond Pointer to the condition variable structure.
+ * @param mutex Pointer to the associated mutex structure.
+ * @param ms Time in milliseconds to unlock if not unlocked in time.
+ * @return 0 on success, non-zero error code on failure.
+ */
+int cthreads_cond_timedwait(struct cthreads_cond *cond, struct cthreads_mutex *mutex, unsigned int ms);
+
 #ifdef CTHREADS_RWLOCK
   /**
    * Initializes a read-write lock.

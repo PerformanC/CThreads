@@ -25,6 +25,12 @@ CThreads is an extremely portable threading library, allowing you to use the sam
 - `cthreads_cond_broadcast`: Broadcasts a condition variable.
 - `cthreads_cond_destroy`: Destroys a condition variable.
 - `cthreads_cond_wait`: Waits on a condition variable.
+- `cthreads_cond_timedwait`: Waits on a condition variable till ms.
+- `cthreads_rwlock_init`: Initializes a read-write lock. Locked by `CTHREADS_RWLOCK`.
+- `cthreads_rwlock_rdlock`: Acquires a read lock on a read-write lock. Locked by `CTHREADS_RWLOCK`.
+- `cthreads_rwlock_unlock`: Unlocks a read-write lock. Locked by `CTHREADS_RWLOCK`.
+- `cthreads_rwlock_wrlock`: Acquires a write lock on a read-write lock. Locked by `CTHREADS_RWLOCK`.
+- `cthreads_rwlock_destroy`: Destroys a read-write lock. Locked by `CTHREADS_RWLOCK`.
 
 > [!NOTE]
 > For internal information of what functions are used on certain platform, see `cthreads.h` file.

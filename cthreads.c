@@ -336,6 +336,24 @@ int cthreads_cond_wait(struct cthreads_cond *cond, struct cthreads_mutex *mutex)
   #endif
 }
 
+int cthreads_cond_timedwait(struct cthreads_cond *cond, struct cthreads_mutex *mutex, unsigned int ms) {
+  #ifdef CTHREADS_DEBUG
+    printf("cthreads_cond_wait\n");
+  #endif
+
+  #ifdef _WIN32
+    return SleepConditionVariableCS(&cond->wCond, &mutex->wMutex, (DWORD)ms) == 0;
+  #else
+    struct timespec ts;
+    if (clock_gettime(CLOCK_REALTIME, &ts)) return 1;
+
+    ts.tv_sec += ms / 1000;
+    ts.tv_nsec += (ms % 1000) * 1000000;
+
+    return pthread_cond_timedwait(&cond->pCond, &mutex->pMutex, &ts);
+  #endif
+}
+
 #ifdef CTHREADS_RWLOCK
   int cthreads_rwlock_init(struct cthreads_rwlock *rwlock) {
     #ifdef CTHREADS_DEBUG
