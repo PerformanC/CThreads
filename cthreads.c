@@ -474,7 +474,7 @@ int cthreads_cond_timedwait(struct cthreads_cond *cond, struct cthreads_mutex *m
 
     #ifdef _WIN32
       LPSTR platform_error_str = NULL;
-      /* Get length and print message to newly allocated buffer `platform_error_str` */
+      /* INFO: Get length and print message to newly allocated buffer "platform_error_str" */
       const size_t platform_error_str_size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
                                  NULL, error_code, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&platform_error_str, 0, NULL);
     #else
