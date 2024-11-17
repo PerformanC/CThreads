@@ -457,14 +457,11 @@ int cthreads_cond_timedwait(struct cthreads_cond *cond, struct cthreads_mutex *m
       puts("cthreads_error_code");
     #endif
 
-    int error_code;
     #ifdef _WIN32
-      error_code = GetLastError();
+      return GetLastError();
     #else
-      error_code = errno;
+      return errno;
     #endif
-
-    return error_code;
   }
 
   size_t cthreads_error_string(size_t length, char buf[length], int error_code) {
@@ -478,7 +475,7 @@ int cthreads_cond_timedwait(struct cthreads_cond *cond, struct cthreads_mutex *m
       const size_t platform_error_str_size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
                                  NULL, error_code, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&platform_error_str, 0, NULL);
     #else
-      const char* platform_error_str = strerror(errno);
+      const char *platform_error_str = strerror(errno);
       const size_t platform_error_str_size = strlen(platform_error_str);
     #endif
 
@@ -487,6 +484,7 @@ int cthreads_cond_timedwait(struct cthreads_cond *cond, struct cthreads_mutex *m
       #ifdef _WIN32
         LocalFree(platform_error_str);
       #endif
+      
       return platform_error_str_size + 1;
     }
 
