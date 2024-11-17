@@ -2,8 +2,10 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#include <errno.h>  /* For errno */
-#include <string.h> /* For strerror() and strlen() */
+#ifndef _WIN32
+#include <errno.h>  /* errno */
+#include <string.h> /* strerror(), strlen() */
+#endif
 /* GetLastError() is defined in windows.h,
  * which is already included in cthreads.h */
 
