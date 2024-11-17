@@ -2,6 +2,11 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#include <errno.h>  /* For errno */
+#include <string.h> /* For strerror() and strlen() */
+/* GetLastError() is defined in windows.h,
+ * which is already included in cthreads.h */
+
 #include "cthreads.h"
 
 #ifdef _WIN32
@@ -443,5 +448,52 @@ int cthreads_cond_timedwait(struct cthreads_cond *cond, struct cthreads_mutex *m
     #else
       return pthread_rwlock_destroy(&rwlock->pRWLock);
     #endif
+  }
+
+  int cthreads_error_code(void) {
+    #ifdef CTHREADS_DEBUG
+      puts("cthreads_error_code");
+    #endif
+
+    int error_code;
+    #ifdef _WIN32
+      error_code = GetLastError();
+    #else
+      error_code = errno;
+    #endif
+
+    return error_code;
+  }
+
+  size_t cthreads_error_string(size_t length, char buf[length], int error_code) {
+    #ifdef CTHREADS_DEBUG
+      puts("cthreads_error_string");
+    #endif
+
+    #ifdef _WIN32
+      LPSTR platform_error_str = NULL;
+      /* Get length and print message to newly allocated buffer `platform_error_str` */
+      const size_t platform_error_str_size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+                                 NULL, error_code, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&platform_error_str, 0, NULL);
+    #else
+      const char* platform_error_str = strerror(errno);
+      const size_t platform_error_str_size = strlen(platform_error_str);
+    #endif
+
+
+    if (platform_error_str_size >= length) {
+      #ifdef _WIN32
+        LocalFree(platform_error_str);
+      #endif
+      return platform_error_str_size + 1;
+    }
+
+    memcpy(buf, platform_error_str, platform_error_str_size);
+
+    #ifdef _WIN32
+      LocalFree(platform_error_str);
+    #endif
+
+    return platform_error_str_size + 1;
   }
 #endif
