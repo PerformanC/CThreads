@@ -31,6 +31,8 @@ CThreads is an extremely portable threading library, allowing you to use the sam
 - `cthreads_rwlock_unlock`: Unlocks a read-write lock. Locked by `CTHREADS_RWLOCK`.
 - `cthreads_rwlock_wrlock`: Acquires a write lock on a read-write lock. Locked by `CTHREADS_RWLOCK`.
 - `cthreads_rwlock_destroy`: Destroys a read-write lock. Locked by `CTHREADS_RWLOCK`.
+- `cthreads_error_code`: Gets the platform-specific error code after an operation
+- `cthreads_error_string`: Writes the platform-specific error message into a user-provided buffer.
 
 > [!NOTE]
 > For internal information of what functions are used on certain platform, see `cthreads.h` file.
