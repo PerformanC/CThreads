@@ -6,8 +6,6 @@
 #include <errno.h>  /* errno */
 #include <string.h> /* strerror(), strlen() */
 #endif
-/* GetLastError() is defined in windows.h,
- * which is already included in cthreads.h */
 
 #include "cthreads.h"
 
