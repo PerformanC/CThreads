@@ -470,28 +470,28 @@ int cthreads_cond_timedwait(struct cthreads_cond *cond, struct cthreads_mutex *m
     #ifdef _WIN32
       LPSTR platform_error_str = NULL;
       /* INFO: Get length and print message to newly allocated buffer "platform_error_str" */
-      const size_t platform_error_str_size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+      const size_t platform_error_str_len = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
                                  NULL, error_code, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&platform_error_str, 0, NULL);
     #else
       const char *platform_error_str = strerror(errno);
-      const size_t platform_error_str_size = strlen(platform_error_str);
+      const size_t platform_error_str_len = strlen(platform_error_str);
     #endif
 
 
-    if (platform_error_str_size >= length) {
+    if (platform_error_str_len >= length) {
       #ifdef _WIN32
         LocalFree(platform_error_str);
       #endif
       
-      return platform_error_str_size + 1;
+      return platform_error_str_len + 1;
     }
 
-    memcpy(buf, platform_error_str, platform_error_str_size);
+    memcpy(buf, platform_error_str, platform_error_str_len);
 
     #ifdef _WIN32
       LocalFree(platform_error_str);
     #endif
 
-    return platform_error_str_size + 1;
+    return platform_error_str_len + 1;
   }
 #endif
