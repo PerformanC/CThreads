@@ -2,6 +2,11 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#ifndef _WIN32
+  #include <errno.h>  /* errno */
+  #include <string.h> /* strerror(), strlen() */
+#endif
+
 #include "cthreads.h"
 
 #ifdef _WIN32
@@ -19,7 +24,7 @@ DWORD WINAPI __cthreads_winthreads_function_wrapper(void *data) {
 int cthreads_thread_create(struct cthreads_thread *thread, struct cthreads_thread_attr *attr, void *(*func)(void *data), void *data, struct cthreads_args *args) {
   #ifdef _WIN32
     #ifdef CTHREADS_DEBUG
-      printf("cthreads_thread_create\n");
+      puts("cthreads_thread_create");
     #endif
 
     args->func = func;
@@ -37,7 +42,7 @@ int cthreads_thread_create(struct cthreads_thread *thread, struct cthreads_threa
     (void) args;
 
     #ifdef CTHREADS_DEBUG
-      printf("cthreads_thread_create\n");
+      puts("cthreads_thread_create");
     #endif
 
     if (attr) {
@@ -61,7 +66,7 @@ int cthreads_thread_create(struct cthreads_thread *thread, struct cthreads_threa
 
 int cthreads_thread_detach(struct cthreads_thread thread) {
   #ifdef CTHREADS_DEBUG
-    printf("cthreads_thread_detach\n");
+    puts("cthreads_thread_detach");
   #endif
 
   #ifdef _WIN32
@@ -73,7 +78,7 @@ int cthreads_thread_detach(struct cthreads_thread thread) {
 
 int cthreads_thread_join(struct cthreads_thread thread, void *code) {
   #ifdef CTHREADS_DEBUG
-    printf("cthreads_thread_join\n");
+    puts("cthreads_thread_join");
   #endif
 
   #ifdef _WIN32
@@ -87,7 +92,7 @@ int cthreads_thread_join(struct cthreads_thread thread, void *code) {
 
 int cthreads_thread_equal(struct cthreads_thread thread1, struct cthreads_thread thread2) {
   #ifdef CTHREADS_DEBUG
-    printf("cthreads_thread_equal\n");
+    puts("cthreads_thread_equal");
   #endif
 
   #ifdef _WIN32
@@ -101,7 +106,7 @@ struct cthreads_thread cthreads_thread_self(void) {
   struct cthreads_thread t;
 
   #ifdef CTHREADS_DEBUG
-    printf("cthreads_thread_self\n");
+    puts("cthreads_thread_self");
   #endif
 
   #ifdef _WIN32
@@ -115,7 +120,7 @@ struct cthreads_thread cthreads_thread_self(void) {
 
 unsigned long cthreads_thread_id(struct cthreads_thread thread) {
   #ifdef CTHREADS_DEBUG
-    printf("cthreads_thread_id\n");
+    puts("cthreads_thread_id");
   #endif
 
   #ifdef _WIN32
@@ -127,7 +132,7 @@ unsigned long cthreads_thread_id(struct cthreads_thread thread) {
 
 void cthreads_thread_exit(void *code) {
   #ifdef CTHREADS_DEBUG
-    printf("cthreads_thread_exit\n");
+    puts("cthreads_thread_exit");
   #endif
 
   #ifdef _WIN32
@@ -143,7 +148,7 @@ void cthreads_thread_exit(void *code) {
 
 int cthreads_thread_cancel(struct cthreads_thread thread) {
   #ifdef CTHREADS_DEBUG
-    printf("cthreads_thread_cancel\n");
+    puts("cthreads_thread_cancel");
   #endif
 
   #ifdef _WIN32
@@ -160,7 +165,7 @@ int cthreads_thread_cancel(struct cthreads_thread thread) {
 #endif
   #ifdef _WIN32
     #ifdef CTHREADS_DEBUG
-      printf("cthreads_mutex_init\n");
+      puts("cthreads_mutex_init");
     #endif
 
     (void) attr;
@@ -172,7 +177,7 @@ int cthreads_thread_cancel(struct cthreads_thread thread) {
     pthread_mutexattr_t pAttr;
 
     #ifdef CTHREADS_DEBUG
-      printf("cthreads_mutex_init\n");
+      puts("cthreads_mutex_init");
     #endif
   
     /* CTHREADS_MUTEX_ATTR is always available on non-Windows platforms */
@@ -199,7 +204,7 @@ int cthreads_thread_cancel(struct cthreads_thread thread) {
 
 int cthreads_mutex_lock(struct cthreads_mutex *mutex) {
   #ifdef CTHREADS_DEBUG
-    printf("cthreads_mutex_lock\n");
+    puts("cthreads_mutex_lock");
   #endif
 
   #ifdef _WIN32
@@ -213,7 +218,7 @@ int cthreads_mutex_lock(struct cthreads_mutex *mutex) {
 
 int cthreads_mutex_trylock(struct cthreads_mutex *mutex) {
   #ifdef CTHREADS_DEBUG
-    printf("cthreads_mutex_trylock\n");
+    puts("cthreads_mutex_trylock");
   #endif
 
   #ifdef _WIN32
@@ -227,7 +232,7 @@ int cthreads_mutex_trylock(struct cthreads_mutex *mutex) {
 
 int cthreads_mutex_unlock(struct cthreads_mutex *mutex) {
   #ifdef CTHREADS_DEBUG
-    printf("cthreads_mutex_unlock\n");
+    puts("cthreads_mutex_unlock");
   #endif
 
   #ifdef _WIN32
@@ -241,7 +246,7 @@ int cthreads_mutex_unlock(struct cthreads_mutex *mutex) {
 
 int cthreads_mutex_destroy(struct cthreads_mutex *mutex) {
   #ifdef CTHREADS_DEBUG
-    printf("cthreads_mutex_destroy\n");
+    puts("cthreads_mutex_destroy");
   #endif
 
   #ifdef _WIN32
@@ -259,7 +264,7 @@ int cthreads_mutex_destroy(struct cthreads_mutex *mutex) {
   int cthreads_cond_init(struct cthreads_cond *cond, void *attr) {
 #endif
   #ifdef CTHREADS_DEBUG
-    printf("cthreads_cond_init\n");
+    puts("cthreads_cond_init");
   #endif
 
   #ifdef _WIN32
@@ -286,7 +291,7 @@ int cthreads_mutex_destroy(struct cthreads_mutex *mutex) {
 
 int cthreads_cond_signal(struct cthreads_cond *cond) {
   #ifdef CTHREADS_DEBUG
-    printf("cthreads_cond_signal\n");
+    puts("cthreads_cond_signal");
   #endif
 
   #ifdef _WIN32
@@ -300,7 +305,7 @@ int cthreads_cond_signal(struct cthreads_cond *cond) {
 
 int cthreads_cond_broadcast(struct cthreads_cond *cond) {
   #ifdef CTHREADS_DEBUG
-    printf("cthreads_cond_broadcast\n");
+    puts("cthreads_cond_broadcast");
   #endif
 
   #ifdef _WIN32
@@ -314,7 +319,7 @@ int cthreads_cond_broadcast(struct cthreads_cond *cond) {
 
 int cthreads_cond_destroy(struct cthreads_cond *cond) {
   #ifdef CTHREADS_DEBUG
-    printf("cthreads_cond_destroy\n");
+    puts("cthreads_cond_destroy");
   #endif
 
   #ifdef _WIN32
@@ -326,7 +331,7 @@ int cthreads_cond_destroy(struct cthreads_cond *cond) {
 
 int cthreads_cond_wait(struct cthreads_cond *cond, struct cthreads_mutex *mutex) {
   #ifdef CTHREADS_DEBUG
-    printf("cthreads_cond_wait\n");
+    puts("cthreads_cond_wait");
   #endif
 
   #ifdef _WIN32
@@ -338,7 +343,7 @@ int cthreads_cond_wait(struct cthreads_cond *cond, struct cthreads_mutex *mutex)
 
 int cthreads_cond_timedwait(struct cthreads_cond *cond, struct cthreads_mutex *mutex, unsigned int ms) {
   #ifdef CTHREADS_DEBUG
-    printf("cthreads_cond_wait\n");
+    puts("cthreads_cond_wait");
   #endif
 
   #ifdef _WIN32
@@ -357,7 +362,7 @@ int cthreads_cond_timedwait(struct cthreads_cond *cond, struct cthreads_mutex *m
 #ifdef CTHREADS_RWLOCK
   int cthreads_rwlock_init(struct cthreads_rwlock *rwlock) {
     #ifdef CTHREADS_DEBUG
-      printf("cthreads_rwlock_init\n");
+      puts("cthreads_rwlock_init");
     #endif
 
     #ifdef _WIN32
@@ -374,7 +379,7 @@ int cthreads_cond_timedwait(struct cthreads_cond *cond, struct cthreads_mutex *m
 
   int cthreads_rwlock_rdlock(struct cthreads_rwlock *rwlock) {
     #ifdef CTHREADS_DEBUG
-      printf("cthreads_rwlock_rdlock\n");
+      puts("cthreads_rwlock_rdlock");
     #endif
 
     #ifdef _WIN32
@@ -389,7 +394,7 @@ int cthreads_cond_timedwait(struct cthreads_cond *cond, struct cthreads_mutex *m
 
   int cthreads_rwlock_unlock(struct cthreads_rwlock *rwlock) {
     #ifdef CTHREADS_DEBUG
-      printf("cthreads_rwlock_unlock\n");
+      puts("cthreads_rwlock_unlock");
     #endif
 
     #ifdef _WIN32
@@ -416,7 +421,7 @@ int cthreads_cond_timedwait(struct cthreads_cond *cond, struct cthreads_mutex *m
 
   int cthreads_rwlock_wrlock(struct cthreads_rwlock *rwlock) {
     #ifdef CTHREADS_DEBUG
-      printf("cthreads_rwlock_wrlock\n");
+      puts("cthreads_rwlock_wrlock");
     #endif
 
     #ifdef _WIN32
@@ -431,7 +436,7 @@ int cthreads_cond_timedwait(struct cthreads_cond *cond, struct cthreads_mutex *m
 
   int cthreads_rwlock_destroy(struct cthreads_rwlock *rwlock) {
     #ifdef CTHREADS_DEBUG
-      printf("cthreads_rwlock_destroy\n");
+      puts("cthreads_rwlock_destroy");
     #endif
 
     #ifdef _WIN32
@@ -443,5 +448,50 @@ int cthreads_cond_timedwait(struct cthreads_cond *cond, struct cthreads_mutex *m
     #else
       return pthread_rwlock_destroy(&rwlock->pRWLock);
     #endif
+  }
+
+  int cthreads_error_code(void) {
+    #ifdef CTHREADS_DEBUG
+      puts("cthreads_error_code");
+    #endif
+
+    #ifdef _WIN32
+      return GetLastError();
+    #else
+      return errno;
+    #endif
+  }
+
+  size_t cthreads_error_string(size_t length, char buf[length], int error_code) {
+    #ifdef CTHREADS_DEBUG
+      puts("cthreads_error_string");
+    #endif
+
+    #ifdef _WIN32
+      LPSTR platform_error_str = NULL;
+      /* INFO: Get length and print message to newly allocated buffer "platform_error_str" */
+      const size_t platform_error_str_len = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+                                 NULL, error_code, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&platform_error_str, 0, NULL);
+    #else
+      const char *platform_error_str = strerror(errno);
+      const size_t platform_error_str_len = strlen(platform_error_str);
+    #endif
+
+
+    if (platform_error_str_len >= length) {
+      #ifdef _WIN32
+        LocalFree(platform_error_str);
+      #endif
+      
+      return platform_error_str_len + 1;
+    }
+
+    memcpy(buf, platform_error_str, platform_error_str_len);
+
+    #ifdef _WIN32
+      LocalFree(platform_error_str);
+    #endif
+
+    return platform_error_str_len + 1;
   }
 #endif
