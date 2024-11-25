@@ -3,8 +3,8 @@
 #include <stdint.h>
 
 #ifndef _WIN32
-#include <errno.h>  /* errno */
-#include <string.h> /* strerror(), strlen() */
+  #include <errno.h>  /* errno */
+  #include <string.h> /* strerror(), strlen() */
 #endif
 
 #include "cthreads.h"
