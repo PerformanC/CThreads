@@ -495,3 +495,85 @@ int cthreads_cond_timedwait(struct cthreads_cond *cond, struct cthreads_mutex *m
     return platform_error_str_len + 1;
   }
 #endif
+
+#ifdef CTHREADS_SEMAPHORE
+  int cthreads_sem_init(struct cthreads_semaphore *sem, int initial_count) {
+    #ifdef CTHREADS_DEBUG
+      puts("cthreads_sem_init");
+    #endif
+  
+    #ifdef _WIN32
+      sem->wSemaphore = CreateSemaphore(NULL, initial_count, LONG_MAX, NULL);
+
+      return sem->wSemaphore == NULL;
+    #else
+      return sem_init(&sem->pSemaphore,0, initial_count);
+    #endif
+  }
+  
+  int cthreads_sem_wait(struct cthreads_semaphore *sem) {
+    #ifdef CTHREADS_DEBUG
+      puts("cthreads_sem_wait");
+    #endif
+
+    #ifdef _WIN32
+      return (WaitForSingleObject(sem->wSemaphore, INFINITE) != WAIT_OBJECT_0);
+    #else
+      return sem_wait(&sem->pSemaphore);
+    #endif
+  }
+  
+  int cthreads_sem_trywait(struct cthreads_semaphore *sem) {
+    #ifdef CTHREADS_DEBUG
+      puts("cthreads_sem_trywait");
+    #endif
+
+    #ifdef _WIN32
+      return (WaitForSingleObject(sem->wSemaphore, 0) == WAIT_TIMEOUT);
+    #else
+      return sem_trywait(&sem->pSemaphore);
+    #endif
+  }
+  
+  int cthreads_sem_timedwait(struct cthreads_semaphore *sem, unsigned int ms) {
+    #ifdef CTHREADS_DEBUG
+      puts("cthreads_sem_timedwait");
+    #endif
+
+    #ifdef _WIN32
+      return (WaitForSingleObject(sem->wSemaphore, (DWORD)ms) == WAIT_TIMEOUT);
+    #else
+      struct timespec ts;
+      if (clock_gettime(CLOCK_REALTIME, &ts)) return 1;
+ 
+      ts.tv_sec += ms / 1000;
+      ts.tv_nsec += (ms % 1000) * 1000000;
+ 
+      return sem_timedwait(&sem->pSemaphore, &ts);
+    #endif
+  }
+  int cthreads_sem_post(struct cthreads_semaphore *sem) {
+    #ifdef CTHREADS_DEBUG
+      puts("cthreads_sem_post");
+    #endif
+
+    #ifdef _WIN32
+      return ReleaseSemaphore(sem->wSemaphore, 1, NULL);
+    #else
+      return sem_post(&sem->pSemaphore);
+    #endif
+  }
+  
+  int cthreads_sem_destroy(struct cthreads_semaphore *sem) {
+    #ifdef CTHREADS_DEBUG
+      puts("cthreads_sem_destroy");
+    #endif
+
+    #ifdef _WIN32
+      return CloseHandle(sem->wSemaphore);
+    #else
+      return sem_destroy(&sem->pSemaphore);
+    #endif
+  }
+#endif
+
