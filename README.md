@@ -33,6 +33,12 @@ CThreads is an extremely portable threading library, allowing you to use the sam
 - `cthreads_rwlock_destroy`: Destroys a read-write lock. Locked by `CTHREADS_RWLOCK`.
 - `cthreads_error_code`: Gets the platform-specific error code after an operation.
 - `cthreads_error_string`: Writes the platform-specific error message into a user-provided buffer.
+- `cthreads_sem_init`: Initializes a semaphore. Locked by `CTHREADS_SEMAPHORE`.
+- `cthreads_sem_wait`: Decrements a semaphore. Locked by `CTHREADS_SEMAPHORE`.
+- `cthreads_sem_trywait`: Tries to decrement a semaphore without blocking. Locked by `CTHREADS_SEMAPHORE`.
+- `cthreads_cond_timedwait`: Tries to decrement a semaphore till ms. Locked by `CTHREADS_SEMAPHORE`.
+- `cthreads_sem_post`: Increments a semaphore. Locked by `CTHREADS_SEMAPHORE`.
+- `cthreads_sem_destroy`: Destroys a semaphore. Locked by `CTHREADS_SEMAPHORE`.
 
 > [!NOTE]
 > For internal information of what functions are used on certain platform, see `cthreads.h` file.
@@ -69,6 +75,7 @@ Those macros are:
 - `CTHREADS_COND_PSHARED`
 - `CTHREADS_COND_CLOCK`
 - `CTHREADS_RWLOCK`
+- `CTHREADS_SEMAPHORE`
 
 > [!NOTE]
 > Any function/field that is not listed there is available on all platforms.
