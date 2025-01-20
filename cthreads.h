@@ -7,6 +7,8 @@ struct cthreads_args {
 };
 
 #ifdef _WIN32
+  /* MSVC sees strncpy() as insecure. */
+  #define _CRT_SECURE_NO_WARNINGS
   #include <windows.h>
 #else
   #include <pthread.h>

@@ -136,7 +136,11 @@ void cthreads_thread_exit(void *code) {
   #endif
 
   #ifdef _WIN32
-    #if defined  __WATCOMC__ || _MSC_VER || __DMC__
+    /* NOTE: This gives warnings on MSVC, so I removed this
+     * for the oldest version of it I could test (19.20). */
+    /* TODO: Test with the other described compilers if this
+     *       is _really_ necessary. */
+    #if defined  __WATCOMC__ || _MSC_VER < 1920 || __DMC__
       ExitThread((DWORD)code);
     #else
       ExitThread((DWORD)(uintptr_t)code);
@@ -323,6 +327,7 @@ int cthreads_cond_destroy(struct cthreads_cond *cond) {
   #endif
 
   #ifdef _WIN32
+    (void) cond;
     return 0;
   #else
     return pthread_cond_destroy(&cond->pCond);
