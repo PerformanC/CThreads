@@ -10,6 +10,7 @@ struct cthreads_args {
   /* MSVC sees strncpy() as insecure. */
   #define _CRT_SECURE_NO_WARNINGS
   #include <windows.h>
+  #define CTHREADS_SEMAPHORE 1
 #else
   #include <pthread.h>
 #endif
@@ -28,6 +29,8 @@ struct cthreads_args {
   #define CTHREADS_THREAD_SCHEDPOLICY 1
   #define CTHREADS_THREAD_SCOPE 1
   #if _POSIX_C_SOURCE >= 200112L
+    #include <semaphore.h>
+    #define CTHREADS_SEMAPHORE 1
     #define CTHREADS_THREAD_STACK 1
   #endif
 
@@ -140,6 +143,16 @@ struct cthreads_rwlock {
     pthread_rwlock_t pRWLock;
   #endif
 };
+#endif
+
+#ifdef CTHREADS_SEMAPHORE
+  struct cthreads_semaphore {
+    #ifdef _WIN32
+      HANDLE wSemaphore;
+    #else
+      sem_t pSemaphore;
+    #endif
+  };
 #endif
 
 /**
@@ -446,5 +459,76 @@ int cthreads_cond_timedwait(struct cthreads_cond *cond, struct cthreads_mutex *m
  * @return Number of bytes required to print the message + NULL-terminator
  */
 size_t cthreads_error_string(int error_code, char *buf, size_t length);
+
+#ifdef CTHREADS_SEMAPHORE
+  /**
+  * Initializes a semaphore.
+  *
+  * - pthread: sem_init()
+  * - windows threads: CreateSemaphore()
+  *
+  * @param semaphore Pointer to the semaphore structure to be initialized.
+  * @param initial count of the semaphore
+  * @return 0 on success, non-zero error code on failure.
+  */
+  int cthreads_sem_init(struct cthreads_semaphore *sem, int initial_count);
+
+  /**
+  * Decrease a semaphore.
+  *
+  * - pthread: sem_wait()
+  * - windows threads: WaitForSingleObject()
+  *
+  * @param semaphore Pointer to the semaphore structure to be decreased.
+  * @return 0 on success, non-zero error code on failure.
+  */
+  int cthreads_sem_wait(struct cthreads_semaphore *sem);
+
+  /**
+  * Tries to decrease a semaphore without blocking.
+  *
+  * - pthread: sem_trywait()
+  * - windows threads: WaitForSingleObject()
+  *
+  * @param semaphore Pointer to the semaphore structure to be decreased.
+  * @return 0 on success, non-zero error code on failure.
+  */
+  int cthreads_sem_trywait(struct cthreads_semaphore *sem);
+
+
+  /**
+  * Waits on a condition variable till set ms.
+  *
+  * - pthread: sem_timedwait
+  * - windows threads: WaitForSingleObject()
+  *
+  * @param semaphore Pointer to the semaphore structure to be decreased.
+  * @param ms Time in milliseconds to unlock if not unlocked in time.
+  * @return 0 on success, non-zero error code on failure.
+  */
+  int cthreads_sem_timedwait(struct cthreads_semaphore *sem, unsigned int ms);
+
+  /**
+  * Increase a semaphore.
+  *
+  * - pthread: sem_post()
+  * - windows threads: ReleaseSemaphore()
+  *
+  * @param semaphore Pointer to the semaphore structure to be increased.
+  * @return 0 on success, non-zero error code on failure.
+  */
+  int cthreads_sem_post(struct cthreads_semaphore *sem);
+
+  /**
+  * Destroy a semaphore.
+  *
+  * - pthread: sem_destroy()
+  * - windows threads: CloseHandle()
+  *
+  * @param semaphore Pointer to the semaphore structure to be destroyed.
+  * @return 0 on success, non-zero error code on failure.
+  */
+  int cthreads_sem_destroy(struct cthreads_semaphore *sem);
+#endif
 
 #endif /* CTHREADS_H */
