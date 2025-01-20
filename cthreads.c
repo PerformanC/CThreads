@@ -7,6 +7,8 @@
   #include <string.h> /* strerror(), strlen() */
 #endif
 
+#include <time.h>
+
 #include "cthreads.h"
 
 #ifdef _WIN32
@@ -463,7 +465,11 @@ int cthreads_cond_timedwait(struct cthreads_cond *cond, struct cthreads_mutex *m
   }
 #endif
 
-size_t cthreads_error_string(int error_code, char *buf, size_t length) {
+#if CTHREADS_STATIC_VLA == 1
+size_t cthreads_error_string(int error_code, size_t length, char buf[static length]) {
+#else
+size_t cthreads_error_string(int error_code, size_t length, char *buf) {
+#endif
   #ifdef CTHREADS_DEBUG
     puts("cthreads_error_string");
   #endif
