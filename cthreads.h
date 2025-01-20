@@ -152,6 +152,7 @@ struct cthreads_rwlock {
     #endif
   };
 #endif
+
 /**
  * Creates a new thread.
  *
@@ -443,19 +444,19 @@ int cthreads_cond_timedwait(struct cthreads_cond *cond, struct cthreads_mutex *m
    * @return Platform-specific error code
    */
   int cthreads_error_code(void);
-
-  /**
-   * Obtains the error code and writes at most `length` 
-   * bytes of the associated message to `buf`.
-   *
-   * @param length Length of the provided buffer
-   * @param buf Buffer of `length` bytes and target of the error message
-   * @param error_code Platform-specific error code. (See: `cthreads_error_code()`)
-   *
-   * @return Number of bytes required to print the message + NULL-terminator
-   */
-  size_t cthreads_error_string(size_t length, char buf[length], int error_code);
 #endif
+
+/**
+ * Obtains the error code and writes at most `length` 
+ * bytes of the associated message to `buf`.
+ *
+ * @param error_code Platform-specific error code. (See: `cthreads_error_code()`)
+ * @param buf Buffer of `length` bytes and target of the error message
+ * @param length Length of the provided buffer
+ *
+ * @return Number of bytes required to print the message + NULL-terminator
+ */
+size_t cthreads_error_string(int error_code, char *buf, size_t length);
 
 #ifdef CTHREADS_SEMAPHORE
   /**

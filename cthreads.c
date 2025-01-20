@@ -461,40 +461,37 @@ int cthreads_cond_timedwait(struct cthreads_cond *cond, struct cthreads_mutex *m
       return errno;
     #endif
   }
-
-  size_t cthreads_error_string(size_t length, char buf[length], int error_code) {
-    #ifdef CTHREADS_DEBUG
-      puts("cthreads_error_string");
-    #endif
-
-    #ifdef _WIN32
-      LPSTR platform_error_str = NULL;
-      /* INFO: Get length and print message to newly allocated buffer "platform_error_str" */
-      const size_t platform_error_str_len = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-                                 NULL, error_code, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&platform_error_str, 0, NULL);
-    #else
-      const char *platform_error_str = strerror(errno);
-      const size_t platform_error_str_len = strlen(platform_error_str);
-    #endif
-
-
-    if (platform_error_str_len >= length) {
-      #ifdef _WIN32
-        LocalFree(platform_error_str);
-      #endif
-      
-      return platform_error_str_len + 1;
-    }
-
-    memcpy(buf, platform_error_str, platform_error_str_len);
-
-    #ifdef _WIN32
-      LocalFree(platform_error_str);
-    #endif
-
-    return platform_error_str_len + 1;
-  }
 #endif
+
+size_t cthreads_error_string(int error_code, char *buf, size_t length) {
+  #ifdef CTHREADS_DEBUG
+    puts("cthreads_error_string");
+  #endif
+
+  #ifdef _WIN32
+    LPSTR error_str = NULL;
+
+    /* 
+      INFO: The string that is written also contains a \n, which we must ignore, besides the
+              NULL terminator.
+    */
+    const size_t error_str_len = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+                                NULL, error_code, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&error_str, 0, NULL) - 1 - 1;
+  #else
+    const char *error_str = strerror(error_code);
+    const size_t error_str_len = strlen(error_str);
+  #endif
+
+  size_t final_len = length > error_str_len ? error_str_len : length - 1;
+  strncpy(buf, (char *)error_str, final_len);
+  buf[final_len] = '\0';
+
+  #ifdef _WIN32
+    LocalFree(error_str);
+  #endif
+
+  return final_len;
+}
 
 #ifdef CTHREADS_SEMAPHORE
   int cthreads_sem_init(struct cthreads_semaphore *sem, int initial_count) {
@@ -576,4 +573,5 @@ int cthreads_cond_timedwait(struct cthreads_cond *cond, struct cthreads_mutex *m
     #endif
   }
 #endif
+
 
