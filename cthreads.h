@@ -446,17 +446,28 @@ int cthreads_cond_timedwait(struct cthreads_cond *cond, struct cthreads_mutex *m
   int cthreads_error_code(void);
 #endif
 
+/* Check for static vla support ( (is_compiler(gcc or clang or tcc) and complies_with(C99))
+ *                               or complies_with(C11) Update cthreads.c) */
+#if ((defined(__GNUC__) || defined(__clang__) || defined(__TINYC__)) && __STDC__ == 1 && __STDC_VERSION__ >= 199901L) \
+    || (__STDC__ == 0 && __STDC_VERSION__ >= 201112L)
+  #define CTHREADS_SUPPORTS_VLA
+#endif
+
 /**
  * Obtains the error code and writes at most `length` 
  * bytes of the associated message to `buf`.
  *
- * @param error_code Platform-specific error code. (See: `cthreads_error_code()`)
- * @param buf Buffer of `length` bytes and target of the error message
+ * @param error_code Platform-specific error code. @see \ref cthreads_error_code()
  * @param length Length of the provided buffer
+ * @param buf Buffer of at least `length` bytes and target of the error message
  *
  * @return Number of bytes required to print the message + NULL-terminator
  */
-size_t cthreads_error_string(int error_code, char *buf, size_t length);
+#ifdef CTHREADS_SUPPORTS_VLA
+  size_t cthreads_error_string(int error_code, size_t length, char buf[static length]);
+#else
+  size_t cthreads_error_string(int error_code, size_t length, char *buf);
+#endif
 
 #ifdef CTHREADS_SEMAPHORE
   /**

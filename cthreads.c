@@ -7,6 +7,8 @@
   #include <string.h> /* strerror(), strlen() */
 #endif
 
+#include <time.h>
+
 #include "cthreads.h"
 
 #ifdef _WIN32
@@ -463,7 +465,11 @@ int cthreads_cond_timedwait(struct cthreads_cond *cond, struct cthreads_mutex *m
   }
 #endif
 
-size_t cthreads_error_string(int error_code, char *buf, size_t length) {
+#ifdef CTHREADS_SUPPORTS_VLA
+  size_t cthreads_error_string(int error_code, size_t length, char buf[static length]) {
+#else
+  size_t cthreads_error_string(int error_code, size_t length, char *buf) {
+#endif
   #ifdef CTHREADS_DEBUG
     puts("cthreads_error_string");
   #endif
@@ -474,7 +480,7 @@ size_t cthreads_error_string(int error_code, char *buf, size_t length) {
     /* 
       INFO: The string that is written also contains a \n, which we must ignore, besides the
               NULL terminator.
-    */
+    */Update cthreads.c
     const size_t error_str_len = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
                                 NULL, error_code, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&error_str, 0, NULL) - 1 - 1;
   #else
