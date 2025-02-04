@@ -139,7 +139,7 @@ void cthreads_thread_exit(void *code) {
     /* NOTE: This gives warnings on MSVC, so I removed this
      * for the oldest version of it I could test (19.20). */
     /* TODO: Test with the other described compilers if this
-     *       is _really_ necessary. */
+     *       is REALLY necessary. */
     #if defined  __WATCOMC__ || _MSC_VER < 1920 || __DMC__
       ExitThread((DWORD)code);
     #else
