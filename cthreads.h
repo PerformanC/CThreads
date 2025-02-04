@@ -446,11 +446,11 @@ int cthreads_cond_timedwait(struct cthreads_cond *cond, struct cthreads_mutex *m
   int cthreads_error_code(void);
 #endif
 
+/* Check for static vla support ( (is_compiler(gcc or clang or tcc) and complies_with(C99))
+ *                               or complies_with(C11) Update cthreads.c) */
 #if ((defined(__GNUC__) || defined(__clang__) || defined(__TINYC__)) && __STDC__ == 1 && __STDC_VERSION__ >= 199901L) \
     || (__STDC__ == 0 && __STDC_VERSION__ >= 201112L)
 #define CTHREADS_SUPPORTS_VLA
-#else
-#define CTHREADS_STATIC_VLA 0
 #endif
 
 /**
@@ -463,7 +463,7 @@ int cthreads_cond_timedwait(struct cthreads_cond *cond, struct cthreads_mutex *m
  *
  * @return Number of bytes required to print the message + NULL-terminator
  */
-#if CTHREADS_STATIC_VLA == 1
+#ifdef CTHREADS_SUPPORTS_VLA
 size_t cthreads_error_string(int error_code, size_t length, char buf[static length]);
 #else
 size_t cthreads_error_string(int error_code, size_t length, char* buf);
