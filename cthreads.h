@@ -464,9 +464,9 @@ int cthreads_cond_timedwait(struct cthreads_cond *cond, struct cthreads_mutex *m
  * @return Number of bytes required to print the message + NULL-terminator
  */
 #ifdef CTHREADS_SUPPORTS_VLA
-size_t cthreads_error_string(int error_code, size_t length, char buf[static length]);
+  size_t cthreads_error_string(int error_code, size_t length, char buf[static length]);
 #else
-size_t cthreads_error_string(int error_code, size_t length, char* buf);
+  size_t cthreads_error_string(int error_code, size_t length, char *buf);
 #endif
 
 #ifdef CTHREADS_SEMAPHORE
