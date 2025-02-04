@@ -450,7 +450,7 @@ int cthreads_cond_timedwait(struct cthreads_cond *cond, struct cthreads_mutex *m
  *                               or complies_with(C11) Update cthreads.c) */
 #if ((defined(__GNUC__) || defined(__clang__) || defined(__TINYC__)) && __STDC__ == 1 && __STDC_VERSION__ >= 199901L) \
     || (__STDC__ == 0 && __STDC_VERSION__ >= 201112L)
-#define CTHREADS_SUPPORTS_VLA
+  #define CTHREADS_SUPPORTS_VLA
 #endif
 
 /**
