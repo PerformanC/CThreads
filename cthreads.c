@@ -13,9 +13,7 @@
 #include <windows.h>
 DWORD WINAPI __cthreads_winthreads_function_wrapper(void *data) {
   struct cthreads_args *args = data;
-  args->func(args->data);
-
-  return TRUE;
+  return (DWORD)(uintptr_t)args->func(args->data);
 }
 #else
 #include <pthread.h>
