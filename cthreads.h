@@ -17,6 +17,7 @@ struct cthreads_args {
   #define CTHREADS_THREAD_DWCREATIONFLAGS 1
 
   #define CTHREADS_RWLOCK 1
+  #define CTHREADS_THREAD_STACKADDR 1
 #else
   #define CTHREADS_THREAD_STACKADDR 1
   #define CTHREADS_THREAD_DETACHSTATE 1
@@ -30,6 +31,10 @@ struct cthreads_args {
     #include <semaphore.h>
     #define CTHREADS_SEMAPHORE 1
     #define CTHREADS_THREAD_STACK 1
+  #endif
+
+  #ifdef _POSIX_THREAD_ATTR_STACKADDR
+    #define CTHREADS_THREAD_STACKADDR 1
   #endif
 
   #define CTHREADS_MUTEX_ATTR 1

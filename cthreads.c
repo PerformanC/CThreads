@@ -52,8 +52,14 @@ int cthreads_thread_create(struct cthreads_thread *thread, struct cthreads_threa
       if (attr->scope) ret = pthread_attr_setscope(&pAttr, attr->scope);
       #ifdef CTHREADS_THREAD_STACK
         if (attr->stack) ret = pthread_attr_setstack(&pAttr, attr->stackaddr, attr->stack);
+        /* INFO: Using both _setstack and _setstacksize is disallowed by POSIX */
+        #ifdef CTHREADS_THREAD_STACKADDR
+        else
+        #endif
       #endif
-      if (attr->stacksize) ret = pthread_attr_setstacksize(&pAttr, attr->stacksize);
+      #ifdef CTHREADS_THREAD_STACKADDR
+        if (attr->stacksize) ret = pthread_attr_setstacksize(&pAttr, attr->stacksize);
+      #endif
 
       if (ret) {
         pthread_attr_destroy(&pAttr);
