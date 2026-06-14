@@ -437,8 +437,6 @@ int cthreads_cond_timedwait(struct cthreads_cond *cond, struct cthreads_mutex *m
         }
       }
 
-      rwlock->type = 0;
-
       return 0;
     #else
       return pthread_rwlock_unlock(&rwlock->pRWLock);
