@@ -411,15 +411,28 @@ int cthreads_cond_timedwait(struct cthreads_cond *cond, struct cthreads_mutex *m
   int cthreads_rwlock_rdlock(struct cthreads_rwlock *rwlock);
 
   /**
-   * Unlocks a read-write lock.
+   * Unlocks a read-write shared lock. 
    *
    * - pthread: pthread_rwlock_unlock
-   * - windows threads: ReleaseSRWLockShared or ReleaseSRWLockExclusive
+   * - windows threads: ReleaseSRWLockShared
    *
+   * @note If you call this function with a lock acquired by `cthreads_rwlock_wrlock`, it will ONLY fail on Windows but work on POSIX.
    * @param rwlock Pointer to the read-write lock structure to be unlocked.
    * @return 0 on success, non-zero error code on failure.
    */
-  int cthreads_rwlock_unlock(struct cthreads_rwlock *rwlock);
+  int cthreads_rwlock_unlock_shared(struct cthreads_rwlock *rwlock);
+
+  /**
+   * Unlocks a read-write exclusive lock. 
+   *
+   * - pthread: pthread_rwlock_unlock
+   * - windows threads: ReleaseSRWLockExclusive
+   *
+   * @note If you call this function with a lock acquired by `cthreads_rwlock_rdlock`, it will ONLY fail on Windows but work on POSIX.
+   * @param rwlock Pointer to the read-write lock structure to be unlocked.
+   * @return 0 on success, non-zero error code on failure.
+   */
+  int cthreads_rwlock_unlock_exclusive(struct cthreads_rwlock *rwlock);
 
   /**
    * Acquires a write lock on a read-write lock.

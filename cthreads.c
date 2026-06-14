@@ -457,7 +457,6 @@ int cthreads_cond_timedwait(struct cthreads_cond *cond, struct cthreads_mutex *m
     #endif
 
     #ifdef _WIN32
-      rwlock->type = 0;
       rwlock->wRWLock = malloc(sizeof(SRWLOCK));
       if (!rwlock->wRWLock) return 1;
 
@@ -476,7 +475,6 @@ int cthreads_cond_timedwait(struct cthreads_cond *cond, struct cthreads_mutex *m
 
     #ifdef _WIN32
       AcquireSRWLockShared(rwlock->wRWLock);
-      rwlock->type = 1;
 
       return 0;
     #else
@@ -484,24 +482,27 @@ int cthreads_cond_timedwait(struct cthreads_cond *cond, struct cthreads_mutex *m
     #endif
   }
 
-  int cthreads_rwlock_unlock(struct cthreads_rwlock *rwlock) {
+  int cthreads_rwlock_unlock_shared(struct cthreads_rwlock *rwlock) {
     #ifdef CTHREADS_DEBUG
-      puts("cthreads_rwlock_unlock");
+      puts("cthreads_rwlock_unlock_shared");
     #endif
 
     #ifdef _WIN32
-      switch (rwlock->type) {
-        case 1: {
-          ReleaseSRWLockShared(rwlock->wRWLock);
+      ReleaseSRWLockShared(rwlock->wRWLock);
 
-          break;
-        }
-        case 2: {
-          ReleaseSRWLockExclusive(rwlock->wRWLock);
+      return 0;
+    #else
+      return pthread_rwlock_unlock(&rwlock->pRWLock);
+    #endif
+  }
 
-          break;
-        }
-      }
+  int cthreads_rwlock_unlock_exclusive(struct cthreads_rwlock *rwlock) {
+    #ifdef CTHREADS_DEBUG
+      puts("cthreads_rwlock_unlock_exclusive");
+    #endif
+
+    #ifdef _WIN32
+      ReleaseSRWLockExclusive(rwlock->wRWLock);
 
       return 0;
     #else
@@ -516,7 +517,6 @@ int cthreads_cond_timedwait(struct cthreads_cond *cond, struct cthreads_mutex *m
 
     #ifdef _WIN32
       AcquireSRWLockExclusive(rwlock->wRWLock);
-      rwlock->type = 2;
 
       return 0;
     #else
@@ -532,7 +532,6 @@ int cthreads_cond_timedwait(struct cthreads_cond *cond, struct cthreads_mutex *m
     #ifdef _WIN32
       free(rwlock->wRWLock);
       rwlock->wRWLock = NULL;
-      rwlock->type = 0;
 
       return 0;
     #else
@@ -573,7 +572,7 @@ size_t cthreads_error_string(int error_code, char *buf, size_t length) {
       strncpy(buf, "Unknown error", length - 1);
       buf[length - 1] = '\0';
 
-      return length - 1;
+      return sizeof("Unknown error");
     }
 
     size_t error_str_len = (size_t)format_ret;
