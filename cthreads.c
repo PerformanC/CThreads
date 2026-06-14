@@ -583,7 +583,12 @@ size_t cthreads_error_string(int error_code, char *buf, size_t length) {
       error_str_len--;
   #else
     char error_buf[256];
+  #if defined(__GLIBC__) && defined(_GNU_SOURCE)
     const char *error_str = strerror_r(error_code, error_buf, sizeof(error_buf));
+  #else
+    int strerror_ret = strerror_r(error_code, error_buf, sizeof(error_buf));
+    const char *error_str = (strerror_ret == 0) ? error_buf : "Unknown error";
+  #endif
     const size_t error_str_len = strlen(error_str);
   #endif
 
