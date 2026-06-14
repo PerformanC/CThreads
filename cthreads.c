@@ -129,6 +129,8 @@ struct cthreads_thread cthreads_thread_self(void) {
   return t;
 }
 
+/* INFO: This is a best-effort implementation on POSIX systems. There is no
+           reliable way to get the thread ID, as pthread_t is an opaque type. */
 unsigned long cthreads_thread_id(struct cthreads_thread thread) {
   #ifdef CTHREADS_DEBUG
     puts("cthreads_thread_id");
