@@ -16,10 +16,10 @@ struct cthreads_args {
 #ifdef _WIN32
   #define CTHREADS_THREAD_DWCREATIONFLAGS 1
 
+  #define CTHREADS_THREAD_STACK 1
+
   #define CTHREADS_RWLOCK 1
-  #define CTHREADS_THREAD_STACKADDR 1
 #else
-  #define CTHREADS_THREAD_STACKADDR 1
   #define CTHREADS_THREAD_DETACHSTATE 1
   #define CTHREADS_THREAD_GUARDSIZE 1
   #ifndef __ANDROID__
@@ -68,6 +68,7 @@ struct cthreads_args {
 struct cthreads_thread {
   #ifdef _WIN32
     HANDLE wThread;
+    DWORD  wThreadId;
   #else
     pthread_t pThread;
   #endif
@@ -143,7 +144,6 @@ struct cthreads_cond {
 #ifdef CTHREADS_RWLOCK
 struct cthreads_rwlock {
   #ifdef _WIN32
-    int type;
     PSRWLOCK wRWLock;
   #else
     pthread_rwlock_t pRWLock;
