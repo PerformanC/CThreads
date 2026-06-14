@@ -379,6 +379,8 @@ int cthreads_cond_timedwait(struct cthreads_cond *cond, struct cthreads_mutex *m
 
     ts.tv_sec += ms / 1000;
     ts.tv_nsec += (ms % 1000) * 1000000;
+    ts.tv_sec += ts.tv_nsec / 1000000000;
+    ts.tv_nsec %= 1000000000;
 
     return pthread_cond_timedwait(&cond->pCond, &mutex->pMutex, &ts);
   #endif
@@ -569,6 +571,8 @@ size_t cthreads_error_string(int error_code, char *buf, size_t length) {
  
       ts.tv_sec += ms / 1000;
       ts.tv_nsec += (ms % 1000) * 1000000;
+      ts.tv_sec += ts.tv_nsec / 1000000000;
+      ts.tv_nsec %= 1000000000;
  
       return sem_timedwait(&sem->pSemaphore, &ts);
     #endif
