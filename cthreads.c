@@ -41,20 +41,31 @@ int cthreads_thread_create(struct cthreads_thread *thread, struct cthreads_threa
     pthread_attr_t pAttr;
     if (attr) {
       if (pthread_attr_init(&pAttr)) return 1;
-      if (attr->detachstate) pthread_attr_setdetachstate(&pAttr, attr->detachstate);
-      if (attr->guardsize) pthread_attr_setguardsize(&pAttr, attr->guardsize);
+
+      int ret = 0;
+      if (attr->detachstate) ret = pthread_attr_setdetachstate(&pAttr, attr->detachstate);
+      if (attr->guardsize) ret = pthread_attr_setguardsize(&pAttr, attr->guardsize);
       #ifdef CTHREADS_THREAD_INHERITSCHED
-        if (attr->inheritsched) pthread_attr_setinheritsched(&pAttr, attr->inheritsched);
+        if (attr->inheritsched) ret = pthread_attr_setinheritsched(&pAttr, attr->inheritsched);
       #endif
-      if (attr->schedpolicy) pthread_attr_setschedpolicy(&pAttr, attr->schedpolicy);
-      if (attr->scope) pthread_attr_setscope(&pAttr, attr->scope);
+      if (attr->schedpolicy) ret = pthread_attr_setschedpolicy(&pAttr, attr->schedpolicy);
+      if (attr->scope) ret = pthread_attr_setscope(&pAttr, attr->scope);
       #ifdef CTHREADS_THREAD_STACK
-        if (attr->stack) pthread_attr_setstack(&pAttr, attr->stackaddr, attr->stack);
+        if (attr->stack) ret = pthread_attr_setstack(&pAttr, attr->stackaddr, attr->stack);
       #endif
-      if (attr->stacksize) pthread_attr_setstacksize(&pAttr, attr->stacksize);
+      if (attr->stacksize) ret = pthread_attr_setstacksize(&pAttr, attr->stacksize);
+
+      if (ret) {
+        pthread_attr_destroy(&pAttr);
+
+        return 1;
+      }
     }
 
-    return pthread_create(&thread->pThread, attr ? &pAttr : NULL, func, data);
+    int ret = pthread_create(&thread->pThread, attr ? &pAttr : NULL, func, data);
+    if (attr) pthread_attr_destroy(&pAttr);
+
+    return ret;
   #endif
 }
 
@@ -177,22 +188,33 @@ int cthreads_thread_cancel(struct cthreads_thread thread) {
     /* CTHREADS_MUTEX_ATTR is always available on non-Windows platforms */
     if (attr) {
       if (pthread_mutexattr_init(&pAttr)) return 1;
-      if (attr->pshared) pthread_mutexattr_setpshared(&pAttr, attr->pshared);
+
+      int ret = 0;
+      if (attr->pshared) ret = pthread_mutexattr_setpshared(&pAttr, attr->pshared);
       #ifdef CTHREADS_MUTEX_TYPE
-        if (attr->type) pthread_mutexattr_settype(&pAttr, attr->type);
+        if (attr->type) ret = pthread_mutexattr_settype(&pAttr, attr->type);
       #endif
       #ifdef CTHREADS_MUTEX_ROBUST
-        if (attr->robust) pthread_mutexattr_setrobust(&pAttr, attr->robust);
+        if (attr->robust) ret = pthread_mutexattr_setrobust(&pAttr, attr->robust);
       #endif
       #ifdef CTHREADS_MUTEX_PROTOCOL
-        if (attr->protocol) pthread_mutexattr_setprotocol(&pAttr, attr->protocol);
+        if (attr->protocol) ret = pthread_mutexattr_setprotocol(&pAttr, attr->protocol);
       #endif
       #ifdef CTHREADS_MUTEX_PRIOCEILING
-        if (attr->prioceiling) pthread_mutexattr_setprioceiling(&pAttr, attr->prioceiling);
+        if (attr->prioceiling) ret = pthread_mutexattr_setprioceiling(&pAttr, attr->prioceiling);
       #endif
+
+      if (ret) {
+        pthread_mutexattr_destroy(&pAttr);
+
+        return 1;
+      }
     }
 
-    return pthread_mutex_init(&mutex->pMutex, attr ? &pAttr : NULL);
+    int ret = pthread_mutex_init(&mutex->pMutex, attr ? &pAttr : NULL);
+    if (attr) pthread_mutexattr_destroy(&pAttr);
+
+    return ret;
   #endif
 }
 
@@ -273,13 +295,24 @@ int cthreads_mutex_destroy(struct cthreads_mutex *mutex) {
     /* CTHREADS_COND_ATTR is always available on non-Windows platforms */
     if (attr) {
       if (pthread_condattr_init(&pAttr) != 0) return 1;
-      if (attr->pshared) pthread_condattr_setpshared(&pAttr, attr->pshared);
+
+      int ret = 0;
+      if (attr->pshared) ret = pthread_condattr_setpshared(&pAttr, attr->pshared);
       #ifdef CTHREADS_COND_CLOCK
-        if (attr->clock) pthread_condattr_setclock(&pAttr, attr->clock);
+        if (attr->clock) ret = pthread_condattr_setclock(&pAttr, attr->clock);
       #endif
+
+      if (ret) {
+        pthread_condattr_destroy(&pAttr);
+
+        return 1;
+      }
     }
 
-    return pthread_cond_init(&cond->pCond, attr ? &pAttr : NULL);
+    int ret = pthread_cond_init(&cond->pCond, attr ? &pAttr : NULL);
+    if (attr) pthread_condattr_destroy(&pAttr);
+
+    return ret;
   #endif
 }
 
