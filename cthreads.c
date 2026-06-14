@@ -147,11 +147,8 @@ void cthreads_thread_exit(void *code) {
   #endif
 
   #ifdef _WIN32
-    #if defined  __WATCOMC__ || _MSC_VER || __DMC__
-      ExitThread((DWORD)code);
-    #else
-      ExitThread((DWORD)(uintptr_t)code);
-    #endif
+    /* INFO: On Windows 64-bit, we cannot losslessly convert a pointer to a DWORD */
+    ExitThread((DWORD)(uintptr_t)code);
   #else
     pthread_exit(code);
   #endif
