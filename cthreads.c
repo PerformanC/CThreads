@@ -104,7 +104,7 @@ int cthreads_thread_join(struct cthreads_thread thread, void *code) {
     int opened = 0;
 
     if (!handle) {
-      handle = OpenThread(THREAD_TERMINATE, FALSE, thread.wThreadId);
+      handle = OpenThread(SYNCHRONIZE | THREAD_QUERY_INFORMATION, FALSE, thread.wThreadId);
       if (!handle) return 1;
 
       opened = 1;
