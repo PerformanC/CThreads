@@ -434,17 +434,17 @@ int cthreads_cond_timedwait(struct cthreads_cond *cond, struct cthreads_mutex *m
    * @return 0 on success, non-zero error code on failure.
    */
   int cthreads_rwlock_destroy(struct cthreads_rwlock *rwlock);
-
-  /**
-   * Returns the platform-specific error code.
-   *
-   * - pthread: errno
-   * - windows: GetLastError()
-   *
-   * @return Platform-specific error code
-   */
-  int cthreads_error_code(void);
 #endif
+
+/**
+  * Returns the platform-specific error code.
+  *
+  * - pthread: errno
+  * - windows: GetLastError()
+  *
+  * @return Platform-specific error code
+  */
+int cthreads_error_code(void);
 
 /**
  * Obtains the error code and writes at most `length` 

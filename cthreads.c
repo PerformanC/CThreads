@@ -476,19 +476,19 @@ int cthreads_cond_timedwait(struct cthreads_cond *cond, struct cthreads_mutex *m
       return pthread_rwlock_destroy(&rwlock->pRWLock);
     #endif
   }
-
-  int cthreads_error_code(void) {
-    #ifdef CTHREADS_DEBUG
-      puts("cthreads_error_code");
-    #endif
-
-    #ifdef _WIN32
-      return GetLastError();
-    #else
-      return errno;
-    #endif
-  }
 #endif
+
+int cthreads_error_code(void) {
+  #ifdef CTHREADS_DEBUG
+    puts("cthreads_error_code");
+  #endif
+
+  #ifdef _WIN32
+    return GetLastError();
+  #else
+    return errno;
+  #endif
+}
 
 size_t cthreads_error_string(int error_code, char *buf, size_t length) {
   #ifdef CTHREADS_DEBUG
