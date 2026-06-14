@@ -582,7 +582,11 @@ size_t cthreads_error_string(int error_code, char *buf, size_t length) {
     #endif
 
     #ifdef _WIN32
-      return (WaitForSingleObject(sem->wSemaphore, 0) == WAIT_OBJECT_0) ? 0 : -1;
+      DWORD ret = WaitForSingleObject(sem->wSemaphore, INFINITE);
+      if (ret == WAIT_OBJECT_0) return 0;
+      if (ret == WAIT_TIMEOUT) SetLastError(ERROR_TIMEOUT);
+
+      return -1;
     #else
       return sem_trywait(&sem->pSemaphore);
     #endif
@@ -594,7 +598,11 @@ size_t cthreads_error_string(int error_code, char *buf, size_t length) {
     #endif
 
     #ifdef _WIN32
-      return (WaitForSingleObject(sem->wSemaphore, (DWORD)ms) == WAIT_OBJECT_0) ? 0 : -1;
+      DWORD ret = WaitForSingleObject(sem->wSemaphore, (DWORD)ms);
+      if (ret == WAIT_OBJECT_0) return 0;
+      if (ret == WAIT_TIMEOUT) SetLastError(ERROR_TIMEOUT);
+
+      return -1;
     #else
       struct timespec ts;
       if (clock_gettime(CLOCK_REALTIME, &ts)) return 1;
