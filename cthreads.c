@@ -310,6 +310,10 @@ int cthreads_mutex_destroy(struct cthreads_mutex *mutex) {
 
         return 1;
       }
+
+      #ifdef CTHREADS_COND_CLOCK
+        if (attr->clock) cond->clock = attr->clock;
+      #endif
     }
 
     int ret = pthread_cond_init(&cond->pCond, attr ? &pAttr : NULL);
@@ -380,7 +384,11 @@ int cthreads_cond_timedwait(struct cthreads_cond *cond, struct cthreads_mutex *m
     return SleepConditionVariableCS(&cond->wCond, &mutex->wMutex, (DWORD)ms) == 0;
   #else
     struct timespec ts;
-    if (clock_gettime(CLOCK_REALTIME, &ts)) return 1;
+    #ifdef CTHREADS_COND_CLOCK
+      if (clock_gettime(cond->clock, &ts)) return 1;
+    #else
+      if (clock_gettime(CLOCK_REALTIME, &ts)) return 1;
+    #endif
 
     ts.tv_sec += ms / 1000;
     ts.tv_nsec += (ms % 1000) * 1000000;

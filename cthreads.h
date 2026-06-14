@@ -123,6 +123,9 @@ struct cthreads_cond {
     CONDITION_VARIABLE wCond;
   #else
     pthread_cond_t pCond;
+    #ifdef CTHREADS_COND_CLOCK
+      int clock;
+    #endif
   #endif
 };
 
