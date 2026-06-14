@@ -10,11 +10,12 @@ CThreads is an extremely portable threading library, allowing you to use the sam
 
 - `cthreads_thread_create`: Creates a new thread.
 - `cthreads_thread_detach`: Detaches a thread.
-- `cthreads_thread_join`: Joins a thread.
+- `cthreads_thread_join`: Joins a thread. Needs `SYNCHRONIZE` and `THREAD_QUERY_INFORMATION` access right on Windows.
 - `cthreads_thread_equal`: Compares two thread structures for equality.
 - `cthreads_thread_self`: Retrieves the thread identifier of the current thread.
 - `cthreads_thread_id`: Retrieves the thread identifier of the specified thread. Warning: This is a best effort implementation in POSIX due to platform limitations. Usage of this function is not recommended.
 - `cthreads_thread_exit`: Exits a thread.
+- `cthreads_thread_cancel`: Cancels a thread. Needs `THREAD_TERMINATE` access right on Windows.
 - `cthreads_mutex_init`: Initializes a mutex.
 - `cthreads_mutex_lock`: Locks a mutex.
 - `cthreads_mutex_trylock`: Tries to lock a mutex without blocking.

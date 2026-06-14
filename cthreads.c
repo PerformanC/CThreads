@@ -31,10 +31,17 @@ int cthreads_thread_create(struct cthreads_thread *thread, struct cthreads_threa
     args->func = func;
     args->data = data;
 
-    if (attr) thread->wThread = CreateThread(NULL, attr->stacksize ? attr->stacksize : 0,
-                                             __cthreads_winthreads_function_wrapper, args, 
-                                             attr->dwCreationFlags ? (DWORD)attr->dwCreationFlags : 0, NULL);
-    else thread->wThread = CreateThread(NULL, 0, __cthreads_winthreads_function_wrapper, args, 0, NULL);
+    DWORD tid;
+    if (attr) {
+      thread->wThread = CreateThread(NULL, attr->stacksize ? attr->stacksize : 0,
+                                     __cthreads_winthreads_function_wrapper, args,
+                                     attr->dwCreationFlags ? (DWORD)attr->dwCreationFlags : 0, &tid);
+    } else {
+      thread->wThread = CreateThread(NULL, 0, __cthreads_winthreads_function_wrapper, args, 0, &tid);
+    }
+
+    /* INFO: If successful, write tid for later access */
+    if (thread->wThread) thread->wThreadId = tid;
 
     return thread->wThread == NULL;
   #else
@@ -93,11 +100,36 @@ int cthreads_thread_join(struct cthreads_thread thread, void *code) {
   #endif
 
   #ifdef _WIN32
-    if (WaitForSingleObject(thread.wThread, INFINITE) == WAIT_FAILED) return 0;
+    HANDLE handle = thread.wThread;
+    int opened = 0;
 
-    return GetExitCodeThread(thread.wThread, (LPDWORD)&code) == 0;
+    if (!handle) {
+      handle = OpenThread(THREAD_TERMINATE, FALSE, thread.wThreadId);
+      if (!handle) return 1;
+
+      opened = 1;
+    }
+  
+    if (WaitForSingleObject(handle, INFINITE) == WAIT_FAILED) {
+      if (opened) CloseHandle(handle);
+
+      return 1;
+    }
+
+    DWORD exit_code;
+    if (!GetExitCodeThread(handle, (LPDWORD)&exit_code)) {
+      if (opened) CloseHandle(handle);
+
+      return 1;
+    }
+
+    CloseHandle(handle);
+
+    if (code) *(void **)code = (void *)(uintptr_t)exit_code;
+
+    return cthreads_thread_detach(thread);
   #else
-    return pthread_join(thread.pThread, code ? &code : NULL);
+    return pthread_join(thread.pThread, code ? (void **)code : NULL);
   #endif
 }
 
@@ -107,7 +139,7 @@ int cthreads_thread_equal(struct cthreads_thread thread1, struct cthreads_thread
   #endif
 
   #ifdef _WIN32
-    return thread1.wThread == thread2.wThread;
+    return thread1.wThreadId == thread2.wThreadId;
   #else
     return pthread_equal(thread1.pThread, thread2.pThread);
   #endif
@@ -121,7 +153,9 @@ struct cthreads_thread cthreads_thread_self(void) {
   #endif
 
   #ifdef _WIN32
-    t.wThread = GetCurrentThread();
+    /* INFO: No real handle, only the ID. */
+    t.wThread = NULL;
+    t.wThreadId = GetCurrentThreadId();
   #else
     t.pThread = pthread_self();
   #endif
@@ -129,17 +163,21 @@ struct cthreads_thread cthreads_thread_self(void) {
   return t;
 }
 
-/* INFO: This is a best-effort implementation on POSIX systems. There is no
-           reliable way to get the thread ID, as pthread_t is an opaque type. */
+/*
+   INFO: This is a best-effort implementation on POSIX systems. There is no
+           reliable way to get the thread ID, as pthread_t is an opaque type.
+
+         On Windows we return the stable thread ID stored at creation.
+*/
 unsigned long cthreads_thread_id(struct cthreads_thread thread) {
   #ifdef CTHREADS_DEBUG
     puts("cthreads_thread_id");
   #endif
 
   #ifdef _WIN32
-    return GetThreadId(thread.wThread);
+    return (unsigned long)thread.wThreadId;
   #else
-    return (unsigned long)thread.pThread;
+    return (unsigned long)(uintptr_t)thread.pThread;
   #endif
 }
 
@@ -162,7 +200,20 @@ int cthreads_thread_cancel(struct cthreads_thread thread) {
   #endif
 
   #ifdef _WIN32
-    return TerminateThread(thread.wThread, 0) == 0;
+    HANDLE handle = thread.wThread;
+    int opened = 0;
+
+    if (!handle) {
+      handle = OpenThread(THREAD_TERMINATE, FALSE, thread.wThreadId);
+      if (!handle) return 1;
+
+      opened = 1;
+    }
+
+    BOOL ret = TerminateThread(handle, 0);
+    if (opened) CloseHandle(handle);
+
+    return ret == 0;
   #else
     return pthread_cancel(thread.pThread);
   #endif
