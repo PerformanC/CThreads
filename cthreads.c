@@ -51,21 +51,21 @@ int cthreads_thread_create(struct cthreads_thread *thread, struct cthreads_threa
 
       int ret = 0;
       if (attr->detachstate) ret = pthread_attr_setdetachstate(&pAttr, attr->detachstate);
-      if (attr->guardsize) ret = pthread_attr_setguardsize(&pAttr, attr->guardsize);
+      if (ret == 0 && attr->guardsize) ret = pthread_attr_setguardsize(&pAttr, attr->guardsize);
       #ifdef CTHREADS_THREAD_INHERITSCHED
-        if (attr->inheritsched) ret = pthread_attr_setinheritsched(&pAttr, attr->inheritsched);
+        if (ret == 0 && attr->inheritsched) ret = pthread_attr_setinheritsched(&pAttr, attr->inheritsched);
       #endif
-      if (attr->schedpolicy) ret = pthread_attr_setschedpolicy(&pAttr, attr->schedpolicy);
-      if (attr->scope) ret = pthread_attr_setscope(&pAttr, attr->scope);
+      if (ret == 0 && attr->schedpolicy) ret = pthread_attr_setschedpolicy(&pAttr, attr->schedpolicy);
+      if (ret == 0 && attr->scope) ret = pthread_attr_setscope(&pAttr, attr->scope);
       #ifdef CTHREADS_THREAD_STACK
-        if (attr->stack) ret = pthread_attr_setstack(&pAttr, attr->stackaddr, attr->stack);
+        if (ret == 0 && attr->stack) ret = pthread_attr_setstack(&pAttr, attr->stackaddr, attr->stack);
         /* INFO: Using both _setstack and _setstacksize is disallowed by POSIX */
         #ifdef CTHREADS_THREAD_STACKADDR
         else
         #endif
       #endif
       #ifdef CTHREADS_THREAD_STACKADDR
-        if (attr->stacksize) ret = pthread_attr_setstacksize(&pAttr, attr->stacksize);
+        if (ret == 0 && attr->stacksize) ret = pthread_attr_setstacksize(&pAttr, attr->stacksize);
       #endif
 
       if (ret) {
@@ -248,16 +248,16 @@ int cthreads_thread_cancel(struct cthreads_thread thread) {
       int ret = 0;
       if (attr->pshared) ret = pthread_mutexattr_setpshared(&pAttr, attr->pshared);
       #ifdef CTHREADS_MUTEX_TYPE
-        if (attr->type) ret = pthread_mutexattr_settype(&pAttr, attr->type);
+        if (ret == 0 && attr->type) ret = pthread_mutexattr_settype(&pAttr, attr->type);
       #endif
       #ifdef CTHREADS_MUTEX_ROBUST
-        if (attr->robust) ret = pthread_mutexattr_setrobust(&pAttr, attr->robust);
+        if (ret == 0 && attr->robust) ret = pthread_mutexattr_setrobust(&pAttr, attr->robust);
       #endif
       #ifdef CTHREADS_MUTEX_PROTOCOL
-        if (attr->protocol) ret = pthread_mutexattr_setprotocol(&pAttr, attr->protocol);
+        if (ret == 0 && attr->protocol) ret = pthread_mutexattr_setprotocol(&pAttr, attr->protocol);
       #endif
       #ifdef CTHREADS_MUTEX_PRIOCEILING
-        if (attr->prioceiling) ret = pthread_mutexattr_setprioceiling(&pAttr, attr->prioceiling);
+        if (ret == 0 && attr->prioceiling) ret = pthread_mutexattr_setprioceiling(&pAttr, attr->prioceiling);
       #endif
 
       if (ret) {
@@ -353,7 +353,7 @@ int cthreads_mutex_destroy(struct cthreads_mutex *mutex) {
       int ret = 0;
       if (attr->pshared) ret = pthread_condattr_setpshared(&pAttr, attr->pshared);
       #ifdef CTHREADS_COND_CLOCK
-        if (attr->clock) ret = pthread_condattr_setclock(&pAttr, attr->clock);
+        if (ret == 0 && attr->clock) ret = pthread_condattr_setclock(&pAttr, attr->clock);
       #endif
 
       if (ret) {
@@ -361,11 +361,11 @@ int cthreads_mutex_destroy(struct cthreads_mutex *mutex) {
 
         return 1;
       }
-
-      #ifdef CTHREADS_COND_CLOCK
-        if (attr->clock) cond->clock = attr->clock;
-      #endif
     }
+
+    #ifdef CTHREADS_COND_CLOCK
+      cond->clock = (attr && attr->clock) ? attr->clock : CLOCK_REALTIME;
+    #endif
 
     int ret = pthread_cond_init(&cond->pCond, attr ? &pAttr : NULL);
     if (attr) pthread_condattr_destroy(&pAttr);
