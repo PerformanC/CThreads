@@ -391,6 +391,7 @@ int cthreads_cond_timedwait(struct cthreads_cond *cond, struct cthreads_mutex *m
     #endif
 
     #ifdef _WIN32
+      rwlock->type = 0;
       rwlock->wRWLock = malloc(sizeof(SRWLOCK));
       if (!rwlock->wRWLock) return 1;
 
