@@ -75,7 +75,7 @@ int cthreads_thread_detach(struct cthreads_thread thread) {
   #endif
 
   #ifdef _WIN32
-    return CloseHandle(thread.wThread);
+    return CloseHandle(thread.wThread) == 0;
   #else
     return pthread_detach(thread.pThread);
   #endif
@@ -157,7 +157,7 @@ int cthreads_thread_cancel(struct cthreads_thread thread) {
   #endif
 
   #ifdef _WIN32
-    return TerminateThread(thread.wThread, 0);
+    return TerminateThread(thread.wThread, 0) == 0;
   #else
     return pthread_cancel(thread.pThread);
   #endif
@@ -238,9 +238,7 @@ int cthreads_mutex_trylock(struct cthreads_mutex *mutex) {
   #endif
 
   #ifdef _WIN32
-    TryEnterCriticalSection(&mutex->wMutex);
-
-    return 0;
+    return TryEnterCriticalSection(&mutex->wMutex) == 0;
   #else
     return pthread_mutex_trylock(&mutex->pMutex);
   #endif
@@ -553,7 +551,7 @@ size_t cthreads_error_string(int error_code, char *buf, size_t length) {
     #endif
 
     #ifdef _WIN32
-      return (WaitForSingleObject(sem->wSemaphore, 0) == WAIT_TIMEOUT);
+      return (WaitForSingleObject(sem->wSemaphore, 0) == WAIT_OBJECT_0) ? 0 : -1;
     #else
       return sem_trywait(&sem->pSemaphore);
     #endif
@@ -565,7 +563,7 @@ size_t cthreads_error_string(int error_code, char *buf, size_t length) {
     #endif
 
     #ifdef _WIN32
-      return (WaitForSingleObject(sem->wSemaphore, (DWORD)ms) == WAIT_TIMEOUT);
+      return (WaitForSingleObject(sem->wSemaphore, (DWORD)ms) == WAIT_OBJECT_0) ? 0 : -1;
     #else
       struct timespec ts;
       if (clock_gettime(CLOCK_REALTIME, &ts)) return 1;
@@ -582,7 +580,7 @@ size_t cthreads_error_string(int error_code, char *buf, size_t length) {
     #endif
 
     #ifdef _WIN32
-      return ReleaseSemaphore(sem->wSemaphore, 1, NULL);
+      return ReleaseSemaphore(sem->wSemaphore, 1, NULL) == 0;
     #else
       return sem_post(&sem->pSemaphore);
     #endif
@@ -594,7 +592,7 @@ size_t cthreads_error_string(int error_code, char *buf, size_t length) {
     #endif
 
     #ifdef _WIN32
-      return CloseHandle(sem->wSemaphore);
+      return CloseHandle(sem->wSemaphore) == 0;
     #else
       return sem_destroy(&sem->pSemaphore);
     #endif
