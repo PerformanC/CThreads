@@ -20,11 +20,14 @@ DWORD WINAPI __cthreads_winthreads_function_wrapper(void *data) {
 #endif
 
 int cthreads_thread_create(struct cthreads_thread *thread, struct cthreads_thread_attr *attr, void *(*func)(void *data), void *data, struct cthreads_args *args) {
-  #ifdef _WIN32
-    #ifdef CTHREADS_DEBUG
-      puts("cthreads_thread_create");
-    #endif
+  #ifdef CTHREADS_DEBUG
+    puts("cthreads_thread_create");
+  #endif
 
+  /* INFO: POSIX path may not use it, but we must guarantee symmetry */
+  if (!args) return 1;
+
+  #ifdef _WIN32
     args->func = func;
     args->data = data;
 
@@ -36,13 +39,6 @@ int cthreads_thread_create(struct cthreads_thread *thread, struct cthreads_threa
     return thread->wThread == NULL;
   #else
     pthread_attr_t pAttr;
-
-    (void) args;
-
-    #ifdef CTHREADS_DEBUG
-      puts("cthreads_thread_create");
-    #endif
-
     if (attr) {
       if (pthread_attr_init(&pAttr)) return 1;
       if (attr->detachstate) pthread_attr_setdetachstate(&pAttr, attr->detachstate);
