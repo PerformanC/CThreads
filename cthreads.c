@@ -507,6 +507,8 @@ size_t cthreads_error_string(int error_code, char *buf, size_t length) {
     puts("cthreads_error_string");
   #endif
 
+  if (length == 0) return 0;
+
   #ifdef _WIN32
     LPSTR error_str = NULL;
 
@@ -514,14 +516,29 @@ size_t cthreads_error_string(int error_code, char *buf, size_t length) {
       INFO: The string that is written also contains a \n, which we must ignore, besides the
               NULL terminator.
     */
-    const size_t error_str_len = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-                                NULL, error_code, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&error_str, 0, NULL) - 1 - 1;
+    DWORD format_ret = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+                                      NULL, error_code, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&error_str, 0, NULL);
+    if (format_ret == 0) {
+      strncpy(buf, "Unknown error", length - 1);
+      buf[length - 1] = '\0';
+
+      return length - 1;
+    }
+
+    size_t error_str_len = (size_t)format_ret;
+
+    /* INFO: Remove trailing newline and carriage return */
+    while (error_str_len > 0 && (error_str[error_str_len - 1] == '\n' || error_str[error_str_len - 1] == '\r'))
+      error_str_len--;
   #else
-    const char *error_str = strerror(error_code);
+    char error_buf[256];
+    const char *error_str = strerror_r(error_code, error_buf, sizeof(error_buf));
     const size_t error_str_len = strlen(error_str);
   #endif
 
   size_t final_len = length > error_str_len ? error_str_len : length - 1;
+  if (final_len == 0) return 0;
+
   strncpy(buf, (char *)error_str, final_len);
   buf[final_len] = '\0';
 
