@@ -29,8 +29,8 @@ CThreads is an extremely portable threading library, allowing you to use the sam
 - `cthreads_cond_timedwait`: Waits on a condition variable till ms.
 - `cthreads_rwlock_init`: Initializes a read-write lock. Locked by `CTHREADS_RWLOCK`.
 - `cthreads_rwlock_rdlock`: Acquires a read lock on a read-write lock. Locked by `CTHREADS_RWLOCK`.
-- `cthreads_rwlock_unlock_shared`: Unlocks a read-write shared lock. Locked by `CTHREADS_RDLOCK`.
-- `cthreads_rwlock_unlock_exclusive`: Unlocks a read-write exclusive lock. Locked by `CTHREADS_RWLOCK`.
+- `cthreads_rwlock_unlock_shared`: Unlocks a read-write shared lock. Locked by `CTHREADS_RDLOCK`. Calling this function on an exclusive lock is undefined behavior on Windows ONLY.
+- `cthreads_rwlock_unlock_exclusive`: Unlocks a read-write exclusive lock. Locked by `CTHREADS_RWLOCK`. Calling this function on a shared lock is undefined behavior on Windows ONLY.
 - `cthreads_rwlock_wrlock`: Acquires a write lock on a read-write lock. Locked by `CTHREADS_RWLOCK`.
 - `cthreads_rwlock_destroy`: Destroys a read-write lock. Locked by `CTHREADS_RWLOCK`.
 - `cthreads_error_code`: Gets the platform-specific error code after an operation.
