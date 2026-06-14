@@ -637,7 +637,7 @@ size_t cthreads_error_string(int error_code, char *buf, size_t length) {
     #endif
 
     #ifdef _WIN32
-      DWORD ret = WaitForSingleObject(sem->wSemaphore, INFINITE);
+      DWORD ret = WaitForSingleObject(sem->wSemaphore, 0);
       if (ret == WAIT_OBJECT_0) return 0;
       if (ret == WAIT_TIMEOUT) SetLastError(ERROR_TIMEOUT);
 
